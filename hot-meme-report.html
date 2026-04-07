@@ -566,9 +566,86 @@
     white-space: nowrap;
   }
 
-  /* ── 响应式 ── */
-  @media (min-width: 480px) {
-    .main { padding: 20px; }
+  /* ── 响应式适配 ── */
+
+  /* 平板 ≥ 640px */
+  @media (min-width: 640px) {
+    .main {
+      padding: 20px 24px;
+      max-width: 720px;
+    }
+    .header { padding: 16px 24px 14px; }
+    .logo-text { font-size: 16px; }
+    .logo-sub { font-size: 12px; }
+    .logo-icon { width: 40px; height: 40px; font-size: 20px; }
+    .tab { padding: 7px 18px; font-size: 14px; }
+    .card { padding: 18px; border-radius: 18px; }
+    .card-title { font-size: 15px; }
+    .meme-actions { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .action-chip { padding: 10px 8px; }
+    .action-chip-text { font-size: 12px; }
+    .strategy-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hot-title { font-size: 14px; }
+    .meme-desc { font-size: 13px; }
+    .predict-topic { font-size: 15px; }
+    .predict-reason { font-size: 13px; }
+    .account-title { font-size: 14px; }
+    .account-name { font-size: 13px; }
+  }
+
+  /* 桌面 ≥ 1024px：双栏布局 */
+  @media (min-width: 1024px) {
+    .main {
+      max-width: 1100px;
+      padding: 24px 32px;
+    }
+    .header { padding: 16px 32px 14px; }
+    .header-top { max-width: 1100px; margin: 0 auto 10px; }
+    .tabs { max-width: 1100px; margin: 0 auto; }
+
+    /* 早报、重点梗、借势方案、明日预判 → 双栏 */
+    #section-morning,
+    #section-meme,
+    #section-strategy,
+    #section-predict {
+      display: none;
+      column-count: 2;
+      column-gap: 16px;
+    }
+    #section-morning.active,
+    #section-meme.active,
+    #section-strategy.active,
+    #section-predict.active {
+      display: block;
+    }
+    #section-morning .card,
+    #section-meme .card,
+    #section-strategy .card,
+    #section-predict .card {
+      break-inside: avoid;
+      margin-bottom: 16px;
+    }
+
+    /* 热榜单栏但更宽 */
+    #section-hot { max-width: 680px; }
+
+    .card { padding: 20px; border-radius: 20px; margin-bottom: 16px; }
+    .card-title { font-size: 16px; }
+    .card-badge { font-size: 11px; padding: 3px 10px; }
+    .meme-card { padding: 16px; }
+    .meme-name { font-size: 15px; }
+    .meme-desc { font-size: 13px; }
+    .strategy-grid { grid-template-columns: 1fr; }
+    .hot-title { font-size: 14px; }
+    .source-note { font-size: 12px; padding: 20px 0 12px; }
+  }
+
+  /* 超宽屏 ≥ 1440px */
+  @media (min-width: 1440px) {
+    .main { max-width: 1300px; padding: 28px 48px; }
+    .header { padding: 18px 48px 16px; }
+    .header-top { max-width: 1300px; }
+    .tabs { max-width: 1300px; }
   }
 </style>
 </head>
