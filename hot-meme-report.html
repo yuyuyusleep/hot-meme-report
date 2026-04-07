@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>换换脑子，热梗营销情报官</title>
+<style>
+  :root {
+    --yellow: #FFD100;
+    --orange: #FF6B00;
+    --red: #FF3B30;
+    --green: #34C759;
+    --blue: #007AFF;
+    --purple: #AF52DE;
+    --bg: #0A0A0F;
+    --card: #13131A;
+    --card2: #1C1C28;
+    --border: rgba(255,255,255,0.07);
+    --text: #F0F0F5;
+    --muted: #8888AA;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── 顶部 Header ── */
+  .header {
+    background: linear-gradient(135deg, #1A0A00 0%, #0A0A1F 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--yellow), var(--orange));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text {
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    background: linear-gradient(90deg, var(--yellow), var(--orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .logo-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+    white-space: nowrap;
+  }
+  .header-meta {
+    flex-shrink: 0;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+  }
+  .update-time {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .live-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 4px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* ── Tab 切换 ── */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: transparent;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--yellow);
+    color: #000;
+    border-color: var(--yellow);
+    font-weight: 700;
+  }
+
+  /* ── 主体 ── */
+  .main {
+    padding: 12px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ── Section ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── 卡片 ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .card-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .badge-red { background: rgba(255,59,48,0.15); color: var(--red); }
+  .badge-orange { background: rgba(255,107,0,0.15); color: var(--orange); }
+  .badge-yellow { background: rgba(255,209,0,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(52,199,89,0.15); color: var(--green); }
+  .badge-blue { background: rgba(0,122,255,0.15); color: var(--blue); }
+  .badge-purple { background: rgba(175,82,222,0.15); color: var(--purple); }
+
+  /* ── 热榜列表 ── */
+  .hot-list { list-style: none; }
+  .hot-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 8px;
+    padding: 8px 6px;
+  }
+  .hot-item:last-child { border-bottom: none; }
+  .hot-item:hover { background: rgba(255,255,255,0.04); }
+  .rank {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .rank-1 { background: #FF3B30; color: #fff; }
+  .rank-2 { background: #FF6B00; color: #fff; }
+  .rank-3 { background: #FFD100; color: #000; }
+  .rank-n { background: var(--card2); color: var(--muted); }
+  .hot-title {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .hot-heat {
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .hot-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .tag-weibo { background: rgba(255,107,0,0.15); color: #FF6B00; }
+  .tag-douyin { background: rgba(0,0,0,0.4); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+  .tag-xhs { background: rgba(255,59,48,0.15); color: #FF3B30; }
+
+  /* ── 平台切换 ── */
+  .platform-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .ptab {
+    flex: 1;
+    padding: 7px 0;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: transparent;
+    transition: all 0.2s;
+  }
+  .ptab.active { color: #000; }
+  .ptab-weibo.active { background: var(--orange); border-color: var(--orange); }
+  .ptab-douyin.active { background: #fff; border-color: #fff; }
+  .ptab-xhs.active { background: var(--red); border-color: var(--red); }
+
+  /* ── 重点梗卡片 ── */
+  .meme-card {
+    background: var(--card2);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--yellow);
+  }
+  .meme-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .meme-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .meme-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .meme-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255,209,0,0.1);
+    color: var(--yellow);
+    border: 1px solid rgba(255,209,0,0.2);
+  }
+  .meme-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .action-chip {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 8px 6px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .action-chip-label {
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .action-chip-text {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .chip-waimai { color: #FFD100; }
+  .chip-pinhao { color: #34C759; }
+  .chip-shangou { color: #007AFF; }
+
+  /* ── 飙升预警 ── */
+  .surge-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .surge-item:last-child { border-bottom: none; }
+  .surge-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    background: rgba(255,59,48,0.1);
+  }
+  .surge-info { flex: 1; }
+  .surge-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .surge-meta { font-size: 11px; color: var(--muted); }
+  .surge-rate {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--red);
+    flex-shrink: 0;
+  }
+
+  /* ── 借势方案 ── */
+  .strategy-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .strategy-item {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .strategy-brand {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .brand-waimai { background: rgba(255,209,0,0.15); }
+  .brand-pinhao { background: rgba(52,199,89,0.15); }
+  .brand-shangou { background: rgba(0,122,255,0.15); }
+  .strategy-content { flex: 1; }
+  .strategy-label {
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .strategy-copy {
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+
+  /* ── 梗账号精选 ── */
+  .account-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .account-item:last-child { border-bottom: none; }
+  .account-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .account-info { flex: 1; }
+  .account-name { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+  .account-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; line-height: 1.4; }
+  .account-comment {
+    font-size: 11px;
+    color: var(--yellow);
+    background: rgba(255,209,0,0.08);
+    padding: 4px 8px;
+    border-radius: 6px;
+    line-height: 1.4;
+  }
+
+  /* ── 明日预判 ── */
+  .predict-item {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .predict-num {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--purple), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .predict-content { flex: 1; }
+  .predict-topic { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .predict-reason { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── 数据来源说明 ── */
+  .source-note {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    padding: 16px 0 8px;
+    line-height: 1.6;
+  }
+
+  /* ── 加载动画 ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--card2) 25%, rgba(255,255,255,0.05) 50%, var(--card2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+    height: 14px;
+    margin-bottom: 8px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── 跨平台共振标记 ── */
+  .cross-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255,107,0,0.2), rgba(255,59,48,0.2));
+    color: var(--orange);
+    border: 1px solid rgba(255,107,0,0.3);
+    margin-left: 4px;
+  }
+
+  /* ── 重点梗增强：洞察面板 ── */
+  .meme-insight-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .insight-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pill-phase-rising { background: rgba(255,59,48,0.12); color: #FF3B30; border: 1px solid rgba(255,59,48,0.25); }
+  .pill-phase-peak   { background: rgba(255,107,0,0.12); color: #FF6B00; border: 1px solid rgba(255,107,0,0.25); }
+  .pill-phase-spread { background: rgba(255,209,0,0.12); color: #FFD100; border: 1px solid rgba(255,209,0,0.25); }
+  .pill-phase-fade   { background: rgba(136,136,170,0.12); color: #8888AA; border: 1px solid rgba(136,136,170,0.25); }
+  .pill-emotion-joy    { background: rgba(52,199,89,0.12); color: #34C759; border: 1px solid rgba(52,199,89,0.25); }
+  .pill-emotion-envy   { background: rgba(175,82,222,0.12); color: #AF52DE; border: 1px solid rgba(175,82,222,0.25); }
+  .pill-emotion-nostal { background: rgba(0,122,255,0.12); color: #007AFF; border: 1px solid rgba(0,122,255,0.25); }
+  .pill-emotion-relax  { background: rgba(52,199,89,0.12); color: #34C759; border: 1px solid rgba(52,199,89,0.25); }
+  .pill-emotion-anxious{ background: rgba(255,59,48,0.12); color: #FF3B30; border: 1px solid rgba(255,59,48,0.25); }
+  .pill-emotion-funny  { background: rgba(255,209,0,0.12); color: #FFD100; border: 1px solid rgba(255,209,0,0.25); }
+  .pill-diff-easy   { background: rgba(52,199,89,0.12); color: #34C759; border: 1px solid rgba(52,199,89,0.25); }
+  .pill-diff-medium { background: rgba(255,209,0,0.12); color: #FFD100; border: 1px solid rgba(255,209,0,0.25); }
+  .pill-diff-hard   { background: rgba(255,59,48,0.12); color: #FF3B30; border: 1px solid rgba(255,59,48,0.25); }
+
+  .meme-insight-block {
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+  }
+  .mib-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+  .mib-text {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .mib-copy {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--yellow);
+    font-style: italic;
+  }
+
+  .meme-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .msh-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .msh-count {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(255,209,0,0.15);
+    color: var(--yellow);
+    font-weight: 700;
+  }
+  .msh-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  .meme-heat-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .heat-bar-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .heat-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--yellow), var(--orange));
+  }
+  .heat-bar-label {
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ── 响应式 ── */
+  @media (min-width: 480px) {
+    .main { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">🔥</div>
+      <div>
+        <div class="logo-text">换换脑子，热梗营销情报官</div>
+        <div class="logo-sub">外卖 · 拼好饭 · 闪购</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="update-time" style="display:flex;align-items:center;gap:4px;"><span class="live-dot"></span><span id="updateTime" style="font-size:10px;">--:--</span></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('morning')">早报</div>
+    <div class="tab" onclick="switchTab('hotlist')">热榜</div>
+    <div class="tab" onclick="switchTab('meme')">重点梗</div>
+    <div class="tab" onclick="switchTab('strategy')">借势方案</div>
+    <div class="tab" onclick="switchTab('predict')">明日预判</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ── 早报总览 ── -->
+  <div class="section active" id="section-morning">
+
+    <div class="card">
+      <div class="card-header" style="flex-direction:column; align-items:flex-start; gap:4px; margin-bottom:12px;">
+        <div class="card-title">
+          <span>🌅</span>
+          <span>今日热梗营销早报</span>
+        </div>
+        <span class="card-badge badge-yellow" id="reportDate" style="font-size:10px; white-space:nowrap; margin-left:26px;"></span>
+      </div>
+      <div style="font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:14px;">
+        今日跨平台共振热点 <strong style="color:var(--yellow)">3</strong> 个，
+        飙升预警 <strong style="color:var(--red)">2</strong> 个，
+        重点梗深度洞察 <strong style="color:var(--orange)">8</strong> 条（含传播路径·情绪标签·借势难度·完整文案）。
+        重点关注「<strong style="color:var(--text)">来成都你就吃吧</strong>」「<strong style="color:var(--text)">5月放假12天</strong>」「<strong style="color:var(--text)">今天吃什么</strong>」三个借势难度最低的高价值梗。
+      </div>
+
+      <!-- 跨平台共振 -->
+      <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px; letter-spacing:0.5px;">⚡ 跨平台共振话题</div>
+      <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
+        <div style="background:var(--card2); border-radius:10px; padding:10px 12px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">清明假期消费热潮</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="hot-tag tag-douyin">抖音</span>
+            <span class="hot-tag tag-weibo">微博</span>
+            <span style="font-size:11px; color:var(--muted);">双平台共振</span>
+          </div>
+        </div>
+        <div style="background:var(--card2); border-radius:10px; padding:10px 12px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">5月放假12天</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="hot-tag tag-weibo">微博</span>
+            <span class="hot-tag tag-douyin">抖音</span>
+            <span style="font-size:11px; color:var(--muted);">双平台共振</span>
+          </div>
+        </div>
+        <div style="background:var(--card2); border-radius:10px; padding:10px 12px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">来成都你就吃吧</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="hot-tag tag-douyin">抖音</span>
+            <span style="font-size:11px; color:var(--muted); white-space:nowrap;">热榜 #8 · 913.8万热度</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 今日借势速览 -->
+      <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px; letter-spacing:0.5px;">💡 今日借势速览</div>
+      <div class="strategy-grid">
+        <div class="strategy-item">
+          <div class="strategy-brand brand-waimai">🛵</div>
+          <div class="strategy-content">
+            <div class="strategy-label">美团外卖</div>
+            <div class="strategy-copy chip-waimai">清明出游不用愁，外卖送到景区口 🌸</div>
+          </div>
+        </div>
+        <div class="strategy-item">
+          <div class="strategy-brand brand-pinhao">🤝</div>
+          <div class="strategy-content">
+            <div class="strategy-label">拼好饭</div>
+            <div class="strategy-copy chip-pinhao">5月12天假期，拼好饭天天省着过 💰</div>
+          </div>
+        </div>
+        <div class="strategy-item">
+          <div class="strategy-brand brand-shangou">⚡</div>
+          <div class="strategy-content">
+            <div class="strategy-label">闪购</div>
+            <div class="strategy-copy chip-shangou">来成都你就吃吧，闪购零食先备好 🌶️</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 飙升预警 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span>⚡</span><span>飙升预警</span></div>
+        <span class="card-badge badge-red">待登录平台数据</span>
+      </div>
+      <div class="surge-item">
+        <div class="surge-icon">🍜</div>
+        <div class="surge-info">
+          <div class="surge-title">来成都你就吃吧</div>
+          <div class="surge-meta">抖音热榜 #8 · 913.8万热度 · 餐饮强相关</div>
+        </div>
+        <div class="surge-rate">↑热</div>
+      </div>
+      <div class="surge-item">
+        <div class="surge-icon">🏖️</div>
+        <div class="surge-info">
+          <div class="surge-title">假期留个IP再走吧</div>
+          <div class="surge-meta">抖音热榜 #5 · 1028万热度 · 旅游消费</div>
+        </div>
+        <div class="surge-rate">↑热</div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+        ⚠️ 千瓜/飞瓜/友望平台数据需首次登录后获取，飙升数据将在下次运行时补全
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 热榜 ── -->
+  <div class="section" id="section-hotlist">
+
+    <div class="card">
+      <div class="platform-tabs">
+        <div class="ptab ptab-weibo active" onclick="switchPlatform('weibo')">微博</div>
+        <div class="ptab ptab-douyin" onclick="switchPlatform('douyin')">抖音</div>
+        <div class="ptab ptab-xhs" onclick="switchPlatform('xhs')">小红书</div>
+      </div>
+
+      <!-- 微博热搜 -->
+      <div id="platform-weibo">
+        <ul class="hot-list" id="weibo-list"></ul>
+      </div>
+
+      <!-- 抖音热榜 -->
+      <div id="platform-douyin" style="display:none;">
+        <ul class="hot-list" id="douyin-list"></ul>
+      </div>
+
+      <!-- 小红书热榜 -->
+      <div id="platform-xhs" style="display:none;">
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:10px;">📱</div>
+          <div style="font-size:13px;">小红书热榜数据获取中</div>
+          <div style="font-size:11px; margin-top:6px;">需要浏览器登录后抓取</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 重点梗 ── -->
+  <div class="section" id="section-meme">
+
+    <!-- 区域标题 -->
+    <div class="meme-section-header">
+      <span style="font-size:16px;">🎯</span>
+      <span class="msh-title">今日重点梗深度洞察</span>
+      <span class="msh-count">8条</span>
+      <span class="msh-sub">按借势价值排序</span>
+    </div>
+
+    <!-- ① 来成都你就吃吧 -->
+    <div class="meme-card">
+      <div class="meme-name">
+        🍜 来成都你就吃吧
+        <span class="cross-badge">🔥 餐饮强关联</span>
+      </div>
+      <div class="meme-heat-bar">
+        <div class="heat-bar-track"><div class="heat-bar-fill" style="width:95%;"></div></div>
+        <span class="heat-bar-label">抖音 #8 · 913.8万</span>
+      </div>
+      <div class="meme-insight-row">
+        <span class="insight-pill pill-phase-peak">📈 传播峰值期</span>
+        <span class="insight-pill pill-emotion-relax">😌 松弛感</span>
+        <span class="insight-pill pill-emotion-joy">😋 食欲驱动</span>
+        <span class="insight-pill pill-diff-easy">✅ 借势难度：低</span>
+      </div>
+      <div class="meme-desc">
+        清明假期出游热潮下，成都美食成为全网讨论焦点。该梗起源于网友对成都「来了就吃」
+        文化的调侃，迅速演变为全国城市美食的通用句式。核心情绪是「放松享受」+「不用想太多」，
+        与外卖「懒人经济」高度契合。可替换城市名做本地化改编，门槛极低。
+      </div>
+      <div class="meme-tags">
+        <span class="meme-tag">清明假期</span>
+        <span class="meme-tag">美食探索</span>
+        <span class="meme-tag">松弛感</span>
+        <span class="meme-tag">城市美食</span>
+        <span class="meme-tag">可本地化</span>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">📡 传播路径</div>
+        <div class="mib-text">成都旅游博主发起 → 美食账号跟进 → 全国网友「来[城市]就吃吧」仿写 → 品牌借势二创</div>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">✍️ 完整文案示例（外卖）</div>
+        <div class="mib-copy">来[你的城市]你就吃吧，不用排队不用等，美团外卖送到你面前 🛵 今天吃什么，让我来替你想 👇</div>
+      </div>
+      <div class="meme-actions">
+        <div class="action-chip">
+          <div class="action-chip-label">外卖</div>
+          <div class="action-chip-text chip-waimai">来你城市就吃吧，外卖送到你面前</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">拼好饭</div>
+          <div class="action-chip-text chip-pinhao">来成都吃？拼好饭价格更香</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">闪购</div>
+          <div class="action-chip-text chip-shangou">出游必备零食，闪购30分钟到</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 5月放假12天 -->
+    <div class="meme-card" style="border-left-color: var(--green);">
+      <div class="meme-name">
+        📅 5月放假12天
+        <span class="cross-badge">📅 消费预期</span>
+      </div>
+      <div class="meme-heat-bar">
+        <div class="heat-bar-track"><div class="heat-bar-fill" style="width:88%; background:linear-gradient(90deg,var(--green),#00C853);"></div></div>
+        <span class="heat-bar-label">微博 #3 · 双平台共振</span>
+      </div>
+      <div class="meme-insight-row">
+        <span class="insight-pill pill-phase-rising">🚀 快速上升期</span>
+        <span class="insight-pill pill-emotion-joy">🎉 期待感</span>
+        <span class="insight-pill pill-emotion-anxious">📦 囤货焦虑</span>
+        <span class="insight-pill pill-diff-easy">✅ 借势难度：低</span>
+      </div>
+      <div class="meme-desc">
+        五一假期叠加端午，12天长假引发全网囤货、出游、聚餐计划讨论。该梗的核心情绪是
+        「提前规划」+「消费期待」，用户处于主动搜索消费方案的状态，是外卖/闪购提前种草的
+        黄金窗口期。数字「12」本身具有强冲击力，适合做数字对比文案。
+      </div>
+      <div class="meme-tags">
+        <span class="meme-tag" style="background:rgba(52,199,89,0.1); color:var(--green); border-color:rgba(52,199,89,0.2);">五一假期</span>
+        <span class="meme-tag" style="background:rgba(52,199,89,0.1); color:var(--green); border-color:rgba(52,199,89,0.2);">囤货计划</span>
+        <span class="meme-tag" style="background:rgba(52,199,89,0.1); color:var(--green); border-color:rgba(52,199,89,0.2);">聚餐场景</span>
+        <span class="meme-tag" style="background:rgba(52,199,89,0.1); color:var(--green); border-color:rgba(52,199,89,0.2);">数字冲击</span>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">📡 传播路径</div>
+        <div class="mib-text">官方假期通知 → 打工人转发庆祝 → 旅游/消费攻略跟进 → 品牌「12天X件事」借势</div>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">✍️ 完整文案示例（拼好饭）</div>
+        <div class="mib-copy">5月放假12天，拼好饭12天，省出来的钱够买一张机票了吧？✈️ 假期不省钱，省的是心情 💚</div>
+      </div>
+      <div class="meme-actions">
+        <div class="action-chip">
+          <div class="action-chip-label">外卖</div>
+          <div class="action-chip-text chip-waimai">12天假期，天天外卖不重样</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">拼好饭</div>
+          <div class="action-chip-text chip-pinhao">假期12天，拼好饭省出一张机票</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">闪购</div>
+          <div class="action-chip-text chip-shangou">假期囤货清单，闪购一键搞定</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 春天就要去春游 -->
+    <div class="meme-card" style="border-left-color: var(--blue);">
+      <div class="meme-name">
+        🌸 春天就要去春游
+        <span class="cross-badge">🌿 季节场景</span>
+      </div>
+      <div class="meme-heat-bar">
+        <div class="heat-bar-track"><div class="heat-bar-fill" style="width:82%; background:linear-gradient(90deg,var(--blue),#00B4FF);"></div></div>
+        <span class="heat-bar-label">抖音 #9 · 913.8万</span>
+      </div>
+      <div class="meme-insight-row">
+        <span class="insight-pill pill-phase-peak">📈 传播峰值期</span>
+        <span class="insight-pill pill-emotion-joy">🌿 治愈感</span>
+        <span class="insight-pill pill-emotion-nostal">🌸 季节仪式感</span>
+        <span class="insight-pill pill-diff-medium">⚡ 借势难度：中</span>
+      </div>
+      <div class="meme-desc">
+        清明节气叠加春游季，户外野餐、景区打卡成为高频场景。该梗的核心是「季节仪式感」——
+        春天必须做某件事的强烈驱动。外卖/闪购的「随时随地」特性与春游场景高度契合，
+        但需要结合具体场景（野餐、公园、景区）才能产生共鸣，借势难度略高于纯假期梗。
+      </div>
+      <div class="meme-tags">
+        <span class="meme-tag" style="background:rgba(0,122,255,0.1); color:var(--blue); border-color:rgba(0,122,255,0.2);">春游野餐</span>
+        <span class="meme-tag" style="background:rgba(0,122,255,0.1); color:var(--blue); border-color:rgba(0,122,255,0.2);">户外场景</span>
+        <span class="meme-tag" style="background:rgba(0,122,255,0.1); color:var(--blue); border-color:rgba(0,122,255,0.2);">清明节气</span>
+        <span class="meme-tag" style="background:rgba(0,122,255,0.1); color:var(--blue); border-color:rgba(0,122,255,0.2);">仪式感</span>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">📡 传播路径</div>
+        <div class="mib-text">小红书野餐攻略 → 抖音景区打卡视频 → 「春天就要X」句式仿写 → 品牌场景化借势</div>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">✍️ 完整文案示例（闪购）</div>
+        <div class="mib-copy">春天就要去春游，春游就要有零食包 🧺 野餐垫铺好，闪购配齐出发，30分钟送到公园门口 🌸</div>
+      </div>
+      <div class="meme-actions">
+        <div class="action-chip">
+          <div class="action-chip-label">外卖</div>
+          <div class="action-chip-text chip-waimai">春游不带饭？外卖送到公园门口</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">拼好饭</div>
+          <div class="action-chip-text chip-pinhao">春游拼好饭，省钱又好吃</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">闪购</div>
+          <div class="action-chip-text chip-shangou">春游零食包，闪购配齐出发</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 清明不扫墓在家点外卖 -->
+    <div class="meme-card" style="border-left-color: var(--orange);">
+      <div class="meme-name">
+        🏠 清明宅家派 vs 出游派
+        <span class="cross-badge">⚔️ 对立梗</span>
+      </div>
+      <div class="meme-heat-bar">
+        <div class="heat-bar-track"><div class="heat-bar-fill" style="width:75%; background:linear-gradient(90deg,var(--orange),#FF9500);"></div></div>
+        <span class="heat-bar-label">微博 #12 · 持续发酵</span>
+      </div>
+      <div class="meme-insight-row">
+        <span class="insight-pill pill-phase-spread">🌊 扩散蔓延期</span>
+        <span class="insight-pill pill-emotion-funny">😂 自嘲幽默</span>
+        <span class="insight-pill pill-emotion-relax">🛋️ 宅家认同</span>
+        <span class="insight-pill pill-diff-easy">✅ 借势难度：低</span>
+      </div>
+      <div class="meme-desc">
+        清明假期「出游 vs 宅家」的对立讨论持续发酵，「宅家派」以自嘲方式表达对出游人潮的
+        抗拒。这是外卖场景的天然流量——宅家就要点外卖，情绪共鸣极强。该梗适合做「宅家也很爽」
+        的正向引导，避免负面情绪放大，转化为「宅家美食攻略」内容。
+      </div>
+      <div class="meme-tags">
+        <span class="meme-tag" style="background:rgba(255,107,0,0.1); color:var(--orange); border-color:rgba(255,107,0,0.2);">宅家场景</span>
+        <span class="meme-tag" style="background:rgba(255,107,0,0.1); color:var(--orange); border-color:rgba(255,107,0,0.2);">自嘲文化</span>
+        <span class="meme-tag" style="background:rgba(255,107,0,0.1); color:var(--orange); border-color:rgba(255,107,0,0.2);">对立梗</span>
+        <span class="meme-tag" style="background:rgba(255,107,0,0.1); color:var(--orange); border-color:rgba(255,107,0,0.2);">外卖天然场景</span>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">📡 传播路径</div>
+        <div class="mib-text">出游人潮图片引发「不如宅家」讨论 → 宅家派自嘲段子 → 「宅家也很爽」正向内容 → 外卖/美食品牌接梗</div>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">✍️ 完整文案示例（外卖）</div>
+        <div class="mib-copy">清明假期，出游派堵在路上，宅家派已经点好第三顿外卖了 🛵 宅家不是输，是赢得更聪明 😎</div>
+      </div>
+      <div class="meme-actions">
+        <div class="action-chip">
+          <div class="action-chip-label">外卖</div>
+          <div class="action-chip-text chip-waimai">宅家派的假期，全靠外卖撑着</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">拼好饭</div>
+          <div class="action-chip-text chip-pinhao">宅家也要吃好，拼好饭不将就</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">闪购</div>
+          <div class="action-chip-text chip-shangou">宅家零食补给，闪购30分钟到</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤ 打工人假期综合征 -->
+    <div class="meme-card" style="border-left-color: var(--purple);">
+      <div class="meme-name">
+        😩 假期综合征提前来袭
+        <span class="cross-badge">💼 打工人共鸣</span>
+      </div>
+      <div class="meme-heat-bar">
+        <div class="heat-bar-track"><div class="heat-bar-fill" style="width:70%; background:linear-gradient(90deg,var(--purple),#BF5AF2);"></div></div>
+        <span class="heat-bar-label">抖音 #15 · 持续共鸣</span>
+      </div>
+      <div class="meme-insight-row">
+        <span class="insight-pill pill-phase-spread">🌊 扩散蔓延期</span>
+        <span class="insight-pill pill-emotion-anxious">😩 焦虑共鸣</span>
+        <span class="insight-pill pill-emotion-funny">😂 苦中作乐</span>
+        <span class="insight-pill pill-diff-medium">⚡ 借势难度：中</span>
+      </div>
+      <div class="meme-desc">
+        假期前后「打工人综合征」讨论持续高热，包括「假期焦虑」「收假恐惧」「假期报复性消费」
+        等子话题。该梗的核心情绪是「苦中作乐」——用幽默化解焦虑。外卖/闪购可以切入
+        「假期犒劳自己」「报复性吃好」的消费心理，但需要避免过度渲染负面情绪。
+      </div>
+      <div class="meme-tags">
+        <span class="meme-tag" style="background:rgba(175,82,222,0.1); color:var(--purple); border-color:rgba(175,82,222,0.2);">打工人</span>
+        <span class="meme-tag" style="background:rgba(175,82,222,0.1); color:var(--purple); border-color:rgba(175,82,222,0.2);">假期焦虑</span>
+        <span class="meme-tag" style="background:rgba(175,82,222,0.1); color:var(--purple); border-color:rgba(175,82,222,0.2);">报复性消费</span>
+        <span class="meme-tag" style="background:rgba(175,82,222,0.1); color:var(--purple); border-color:rgba(175,82,222,0.2);">犒劳自己</span>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">📡 传播路径</div>
+        <div class="mib-text">打工人假期倒计时段子 → 「假期焦虑」共鸣帖 → 「犒劳自己」消费内容 → 品牌「假期奖励」借势</div>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">✍️ 完整文案示例（外卖）</div>
+        <div class="mib-copy">假期综合征？先点一顿好的再说 🍱 打工人的假期，从第一顿外卖开始 · 美团外卖，假期犒劳自己 💜</div>
+      </div>
+      <div class="meme-actions">
+        <div class="action-chip">
+          <div class="action-chip-label">外卖</div>
+          <div class="action-chip-text chip-waimai">假期犒劳自己，先点一顿好的</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">拼好饭</div>
+          <div class="action-chip-text chip-pinhao">假期报复性吃好，拼好饭不贵</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">闪购</div>
+          <div class="action-chip-text chip-shangou">假期零食自由，闪购一次配齐</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑥ 人均消费多少才算正常 -->
+    <div class="meme-card" style="border-left-color: var(--red);">
+      <div class="meme-name">
+        💸 出去玩人均消费多少
+        <span class="cross-badge">💰 消费焦虑</span>
+      </div>
+      <div class="meme-heat-bar">
+        <div class="heat-bar-track"><div class="heat-bar-fill" style="width:65%; background:linear-gradient(90deg,var(--red),#FF6B6B);"></div></div>
+        <span class="heat-bar-label">微博 #18 · 评论区爆炸</span>
+      </div>
+      <div class="meme-insight-row">
+        <span class="insight-pill pill-phase-spread">🌊 扩散蔓延期</span>
+        <span class="insight-pill pill-emotion-anxious">💸 消费焦虑</span>
+        <span class="insight-pill pill-emotion-envy">😤 攀比心理</span>
+        <span class="insight-pill pill-diff-hard">🔴 借势难度：高</span>
+      </div>
+      <div class="meme-desc">
+        假期出游消费晒单引发「人均多少才正常」的大讨论，评论区两极分化严重。该梗的核心
+        是「消费焦虑」+「攀比心理」，品牌借势需要谨慎——拼好饭可以切入「省钱也能吃好」
+        的反向叙事，但外卖/闪购需要避免直接触碰「贵/便宜」的敏感点，建议以「吃好才是正经事」
+        转移焦点。
+      </div>
+      <div class="meme-tags">
+        <span class="meme-tag" style="background:rgba(255,59,48,0.1); color:var(--red); border-color:rgba(255,59,48,0.2);">消费焦虑</span>
+        <span class="meme-tag" style="background:rgba(255,59,48,0.1); color:var(--red); border-color:rgba(255,59,48,0.2);">省钱攻略</span>
+        <span class="meme-tag" style="background:rgba(255,59,48,0.1); color:var(--red); border-color:rgba(255,59,48,0.2);">拼好饭天然场景</span>
+        <span class="meme-tag" style="background:rgba(255,59,48,0.1); color:var(--red); border-color:rgba(255,59,48,0.2);">需谨慎借势</span>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">⚠️ 借势风险提示</div>
+        <div class="mib-text">避免直接比价或强调「便宜」，可能引发「廉价感」联想。建议以「吃好是假期最值的投资」正向切入。</div>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">✍️ 完整文案示例（拼好饭）</div>
+        <div class="mib-copy">出去玩人均多少？不如算算拼好饭人均多少 😏 假期吃好才是正经事，省下来的钱留着下次出发 ✈️</div>
+      </div>
+      <div class="meme-actions">
+        <div class="action-chip">
+          <div class="action-chip-label">外卖</div>
+          <div class="action-chip-text chip-waimai">假期吃好才是正经事</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">拼好饭</div>
+          <div class="action-chip-text chip-pinhao">拼好饭人均，比出去玩省多了</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">闪购</div>
+          <div class="action-chip-text chip-shangou">囤货比景区买划算，闪购搞定</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑦ 今天吃什么 -->
+    <div class="meme-card" style="border-left-color: var(--yellow);">
+      <div class="meme-name">
+        🤔 今天吃什么选择困难症
+        <span class="cross-badge">🍽️ 高频刚需</span>
+      </div>
+      <div class="meme-heat-bar">
+        <div class="heat-bar-track"><div class="heat-bar-fill" style="width:78%; background:linear-gradient(90deg,var(--yellow),#FFB800);"></div></div>
+        <span class="heat-bar-label">全平台常青梗 · 假期爆发</span>
+      </div>
+      <div class="meme-insight-row">
+        <span class="insight-pill pill-phase-peak">📈 假期爆发期</span>
+        <span class="insight-pill pill-emotion-funny">😂 选择困难</span>
+        <span class="insight-pill pill-emotion-relax">😌 懒人心态</span>
+        <span class="insight-pill pill-diff-easy">✅ 借势难度：极低</span>
+      </div>
+      <div class="meme-desc">
+        「今天吃什么」是全平台常青梗，假期期间因为「不用上班/不用食堂」而爆发式增长。
+        该梗是外卖场景的最直接入口——用户处于「主动寻找答案」的状态，转化意愿最强。
+        适合做「今日推荐」「帮你选」类内容，结合当日热门菜品或节气食材效果最佳。
+      </div>
+      <div class="meme-tags">
+        <span class="meme-tag">选择困难</span>
+        <span class="meme-tag">高频刚需</span>
+        <span class="meme-tag">假期爆发</span>
+        <span class="meme-tag">转化率最高</span>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">📡 传播路径</div>
+        <div class="mib-text">每日早中晚三次爆发 → 「帮我选」互动内容 → 美食推荐账号接梗 → 外卖平台「今日推荐」承接</div>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">✍️ 完整文案示例（外卖）</div>
+        <div class="mib-copy">今天吃什么？不知道！那就让美团外卖帮你选 🎯 清明假期限定菜单，今天就吃这个 👇 点进来不后悔</div>
+      </div>
+      <div class="meme-actions">
+        <div class="action-chip">
+          <div class="action-chip-label">外卖</div>
+          <div class="action-chip-text chip-waimai">今天吃什么？外卖帮你选好了</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">拼好饭</div>
+          <div class="action-chip-text chip-pinhao">选择困难？拼好饭今日推荐</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">闪购</div>
+          <div class="action-chip-text chip-shangou">不知道吃啥？先囤零食再说</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑧ 清明踏青必备 -->
+    <div class="meme-card" style="border-left-color: var(--green);">
+      <div class="meme-name">
+        🌿 清明踏青必备清单
+        <span class="cross-badge">📋 清单梗</span>
+      </div>
+      <div class="meme-heat-bar">
+        <div class="heat-bar-track"><div class="heat-bar-fill" style="width:60%; background:linear-gradient(90deg,var(--green),#00E676);"></div></div>
+        <span class="heat-bar-label">小红书 TOP · 种草属性强</span>
+      </div>
+      <div class="meme-insight-row">
+        <span class="insight-pill pill-phase-rising">🚀 快速上升期</span>
+        <span class="insight-pill pill-emotion-joy">🌿 仪式感</span>
+        <span class="insight-pill pill-emotion-nostal">📋 清单强迫症</span>
+        <span class="insight-pill pill-diff-medium">⚡ 借势难度：中</span>
+      </div>
+      <div class="meme-desc">
+        「踏青必备清单」在小红书种草属性极强，用户主动搜索「清明出游带什么」「野餐清单」
+        等关键词。该梗适合做「清单式」内容——闪购可以直接承接「一键配齐」的需求，
+        外卖可以做「踏青回来第一顿」的场景。内容形式上，清单图文比纯文案效果更好。
+      </div>
+      <div class="meme-tags">
+        <span class="meme-tag" style="background:rgba(52,199,89,0.1); color:var(--green); border-color:rgba(52,199,89,0.2);">清单种草</span>
+        <span class="meme-tag" style="background:rgba(52,199,89,0.1); color:var(--green); border-color:rgba(52,199,89,0.2);">小红书属性</span>
+        <span class="meme-tag" style="background:rgba(52,199,89,0.1); color:var(--green); border-color:rgba(52,199,89,0.2);">闪购天然场景</span>
+        <span class="meme-tag" style="background:rgba(52,199,89,0.1); color:var(--green); border-color:rgba(52,199,89,0.2);">图文效果佳</span>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">📡 传播路径</div>
+        <div class="mib-text">小红书「踏青攻略」笔记 → 「必备清单」格式扩散 → 抖音清单视频跟进 → 品牌「一键配齐」承接</div>
+      </div>
+      <div class="meme-insight-block">
+        <div class="mib-label">✍️ 完整文案示例（闪购）</div>
+        <div class="mib-copy">清明踏青必备清单 ✅ 防晒霜 ✅ 野餐垫 ✅ 零食饮料 ✅ 湿巾纸巾 · 全部闪购30分钟配齐，出发不磨蹭 🌿</div>
+      </div>
+      <div class="meme-actions">
+        <div class="action-chip">
+          <div class="action-chip-label">外卖</div>
+          <div class="action-chip-text chip-waimai">踏青回来第一顿，外卖已备好</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">拼好饭</div>
+          <div class="action-chip-text chip-pinhao">踏青前拼好饭，省钱出发</div>
+        </div>
+        <div class="action-chip">
+          <div class="action-chip-label">闪购</div>
+          <div class="action-chip-text chip-shangou">踏青清单一键配齐，闪购出发</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 梗账号精选 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span>📌</span><span>梗账号今日精选</span></div>
+        <span class="card-badge badge-purple">今日实时</span>
+      </div>
+
+      <!-- 菠萝聊品牌 -->
+      <div class="account-item">
+        <div class="account-avatar">🍍</div>
+        <div class="account-info">
+          <div class="account-name">菠萝聊品牌 · 小红书 · 2.1万粉 · 3小时前更新</div>
+          <div class="account-title">4.7本周热梗｜教你怎么蹭热梗</div>
+          <div class="account-comment">本周6个可借势热梗：跳跃舞步（运动/茶饮）、给狗剪毛（宠物）、来载歌载舞吧（文旅/饮品）、冷白灯（家居/美妆）、社冷型人格（智能家居/香氛）、用色轮的方式打开（彩妆/服饰）</div>
+        </div>
+      </div>
+
+      <!-- 菠萝聊品牌 梗1 -->
+      <div style="background:var(--card2); border-radius:10px; padding:10px 12px; margin:0 0 8px 0; border-left:2px solid var(--yellow);">
+        <div style="font-size:11px; color:var(--yellow); font-weight:700; margin-bottom:4px;">🕺 跳跃不是罪过 · QQ弹弹的舞步</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">适合运动、茶饮、休闲零食、文旅品牌。拍摄产品+魔性卡点舞蹈视频，传递轻松解压态度，弱化严肃感。</div>
+      </div>
+      <div style="background:var(--card2); border-radius:10px; padding:10px 12px; margin:0 0 8px 0; border-left:2px solid var(--green);">
+        <div style="font-size:11px; color:var(--green); font-weight:700; margin-bottom:4px;">🐶 XX和给狗剪毛哪个更有前景</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">适合宠物美容类品牌，推出狗狗护理一日体验，让用户沉浸式互动解压，既玩梗又引流。</div>
+      </div>
+      <div style="background:var(--card2); border-radius:10px; padding:10px 12px; margin:0 0 8px 0; border-left:2px solid var(--blue);">
+        <div style="font-size:11px; color:var(--blue); font-weight:700; margin-bottom:4px;">💃 来载歌载舞吧 · 先放一放</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">适合文旅、饮品、服饰、亲子品牌。发起治愈系舞蹈挑战，传递放下焦虑、享受当下的情绪价值。</div>
+      </div>
+      <div style="background:var(--card2); border-radius:10px; padding:10px 12px; margin:0 0 14px 0; border-left:2px solid var(--purple);">
+        <div style="font-size:11px; color:var(--purple); font-weight:700; margin-bottom:4px;">🧊 社冷型人格 · 不是社牛也不是社恐</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">适合智能家居、静音家电、小众香氛、线上服务品牌。主打"安静不打扰、舒适不社交"，贴合独处需求。</div>
+      </div>
+
+      <!-- 快活Lab -->
+      <div class="account-item">
+        <div class="account-avatar">⚡</div>
+        <div class="account-info">
+          <div class="account-name">快活Lab · 小红书 · 8.2万粉 · 8小时前更新</div>
+          <div class="account-title">你被分配的是坚持更新热搜的上班牛马😭</div>
+          <div class="account-comment">本期3个年轻人热词：「我的同学是少爷/大小姐」「奥德赛时期」「你被分配到的是坚持上班更新热搜」</div>
+        </div>
+      </div>
+
+      <div style="background:var(--card2); border-radius:10px; padding:10px 12px; margin:0 0 8px 0; border-left:2px solid var(--orange);">
+        <div style="font-size:11px; color:var(--orange); font-weight:700; margin-bottom:4px;">👑 我的同学是少爷/大小姐</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">「用0秒接受自己的新身份」——身份反差梗，适合做「来[品牌]你就是贵客」类借势，外卖/闪购可用「点一单，今天就是少爷」。</div>
+      </div>
+      <div style="background:var(--card2); border-radius:10px; padding:10px 12px; margin:0 0 8px 0; border-left:2px solid var(--red);">
+        <div style="font-size:11px; color:var(--red); font-weight:700; margin-bottom:4px;">🌊 奥德赛时期 · 漂泊感共鸣</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">年轻人对「人生过渡期」的集体共鸣，情绪偏治愈。适合做「漂泊的时候，至少吃好一点」方向文案。</div>
+      </div>
+      <div style="background:var(--card2); border-radius:10px; padding:10px 12px; margin:0 0 0 0; border-left:2px solid var(--muted);">
+        <div style="font-size:11px; color:var(--muted); font-weight:700; margin-bottom:4px;">🐂 你被分配到的是坚持上班更新热搜</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">打工人自嘲梗，与「宅家派」情绪相通。适合做「上班累了，外卖帮你想今天吃什么」方向。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 借势方案 ── -->
+  <div class="section" id="section-strategy">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span>🛵</span><span>美团外卖</span></div>
+        <span class="card-badge badge-yellow">3条文案</span>
+      </div>
+      <div class="strategy-grid">
+        <div class="strategy-item">
+          <div style="font-size:20px; flex-shrink:0;">🍜</div>
+          <div class="strategy-content">
+            <div class="strategy-label">借势「来成都你就吃吧」</div>
+            <div class="strategy-copy">来[你的城市]你就吃吧，美团外卖送到你面前，不用排队不用等 🛵</div>
+          </div>
+        </div>
+        <div class="strategy-item">
+          <div style="font-size:20px; flex-shrink:0;">📅</div>
+          <div class="strategy-content">
+            <div class="strategy-label">借势「5月放假12天」</div>
+            <div class="strategy-copy">12天假期吃什么？美团外卖帮你安排，天天不重样，懒人假期YYDS 🎉</div>
+          </div>
+        </div>
+        <div class="strategy-item">
+          <div style="font-size:20px; flex-shrink:0;">🌸</div>
+          <div class="strategy-content">
+            <div class="strategy-label">借势「春天就要去春游」</div>
+            <div class="strategy-copy">春游不带饭包？美团外卖送到公园门口，野餐垫铺好，外卖到了 🧺</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span>🤝</span><span>拼好饭</span></div>
+        <span class="card-badge badge-green">3条文案</span>
+      </div>
+      <div class="strategy-grid">
+        <div class="strategy-item">
+          <div style="font-size:20px; flex-shrink:0;">💰</div>
+          <div class="strategy-content">
+            <div class="strategy-label">借势「5月放假12天」</div>
+            <div class="strategy-copy">5月放假12天，拼好饭12天，省出来的钱够买一张机票了吧？✈️</div>
+          </div>
+        </div>
+        <div class="strategy-item">
+          <div style="font-size:20px; flex-shrink:0;">🍜</div>
+          <div class="strategy-content">
+            <div class="strategy-label">借势「来成都你就吃吧」</div>
+            <div class="strategy-copy">来成都吃？来哪里都吃！拼好饭，全国美食价格都这么香 🌶️</div>
+          </div>
+        </div>
+        <div class="strategy-item">
+          <div style="font-size:20px; flex-shrink:0;">🌸</div>
+          <div class="strategy-content">
+            <div class="strategy-label">借势「春天就要去春游」</div>
+            <div class="strategy-copy">春游AA制，拼好饭也AA，人均不超20，春天就该这么省 🌿</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span>⚡</span><span>闪购</span></div>
+        <span class="card-badge badge-blue">3条文案</span>
+      </div>
+      <div class="strategy-grid">
+        <div class="strategy-item">
+          <div style="font-size:20px; flex-shrink:0;">🎒</div>
+          <div class="strategy-content">
+            <div class="strategy-label">借势「春天就要去春游」</div>
+            <div class="strategy-copy">春游出发前30分钟，闪购把零食、防晒、湿巾全配齐，说走就走 ⚡</div>
+          </div>
+        </div>
+        <div class="strategy-item">
+          <div style="font-size:20px; flex-shrink:0;">📦</div>
+          <div class="strategy-content">
+            <div class="strategy-label">借势「5月放假12天」</div>
+            <div class="strategy-copy">12天假期囤货清单：零食/饮料/日用品，闪购一键搞定，不用出门 🏠</div>
+          </div>
+        </div>
+        <div class="strategy-item">
+          <div style="font-size:20px; flex-shrink:0;">🌶️</div>
+          <div class="strategy-content">
+            <div class="strategy-label">借势「来成都你就吃吧」</div>
+            <div class="strategy-copy">来成都必备：花椒/辣椒/郫县豆瓣，闪购30分钟送到，在家复刻成都味 🍲</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 明日预判 ── -->
+  <div class="section" id="section-predict">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span>🎯</span><span>明日预判热点</span></div>
+        <span class="card-badge badge-purple">基于今日飙升</span>
+      </div>
+
+      <div class="predict-item">
+        <div class="predict-num">1</div>
+        <div class="predict-content">
+          <div class="predict-topic">清明祭扫 + 踏青双线并行</div>
+          <div class="predict-reason">
+            清明节当天，祭扫话题与踏青出游将同步爆发。建议提前准备「清明不将就，外卖陪你过」方向文案，
+            结合「春天就要去春游」热度延续，主打户外场景。
+          </div>
+        </div>
+      </div>
+
+      <div class="predict-item">
+        <div class="predict-num">2</div>
+        <div class="predict-content">
+          <div class="predict-topic">假期第一天吃什么</div>
+          <div class="predict-reason">
+            「5月放假12天」话题持续发酵，假期首日「吃什么」将成为高频搜索词。
+            建议准备「假期第一顿，当然要点外卖」系列内容，抢占假期消费心智。
+          </div>
+        </div>
+      </div>
+
+      <div class="predict-item">
+        <div class="predict-num">3</div>
+        <div class="predict-content">
+          <div class="predict-topic">周杰伦爱琴海MV 情绪消费</div>
+          <div class="predict-reason">
+            抖音热榜 #15，周杰伦新MV引发情绪共鸣。「听歌点外卖」「一个人的夜宵」
+            等情绪化场景文案值得提前布局，契合外卖夜宵场景。
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="source-note">
+    数据来源：微博热搜 · 抖音热榜 · 千瓜数据 · 飞瓜数据 · 友望数据<br>
+    由「全自动热梗营销情报官」Automation 生成 · <span id="footerTime"></span>
+  </div>
+
+</div>
+
+<script>
+// ── 数据 ──
+const weiboData = [
+  {rank:1,title:"人民是历史的创造者是真正的英雄"},
+  {rank:2,title:"国家继续出手调控油价"},
+  {rank:3,title:"5月放假12天"},
+  {rank:4,title:"电商要更好服务实体经济"},
+  {rank:5,title:"曝某牛奶直播间涉黄涉低俗"},
+  {rank:6,title:"陈丽华儿子担任富华国际集团总裁"},
+  {rank:7,title:"Faker回应马斯克"},
+  {rank:8,title:"马思纯走出抑郁后的状态"},
+  {rank:9,title:"原来这叫软孤立啊"},
+  {rank:10,title:"金莎孙丞潇上夫妻综艺了"},
+  {rank:11,title:"情侣因换座与女乘客发生争执"},
+  {rank:12,title:"瞿颖 肉毒起作用了"},
+  {rank:13,title:"周杰伦 江语晨"},
+  {rank:14,title:"张雪的妈妈是厦大中文系毕业的"},
+  {rank:15,title:"虞书欣紫色新中式造型"},
+  {rank:16,title:"郭艾伦否认被骗"},
+  {rank:17,title:"陈丽华叫迟重瑞迟先生"},
+  {rank:18,title:"江语晨说才刚离婚别这样"},
+  {rank:19,title:"余茵暴瘦"},
+  {rank:20,title:"郑丽文率团抵达"},
+  {rank:21,title:"截瘫女子称男友说会结婚反手拉黑"},
+  {rank:22,title:"虞书欣和Jennie同款发型"},
+  {rank:23,title:"魏大勋青岛进组十日终焉"},
+  {rank:24,title:"伊朗称以放弃北部城市承认了失败"},
+  {rank:25,title:"关晓彤比例 没有拉腿的义务"},
+  {rank:26,title:"喜人奇妙夜"},
+  {rank:27,title:"多方回应截瘫女子车祸时坐姿"},
+  {rank:28,title:"妻子的浪漫旅行嘉宾阵容"},
+  {rank:29,title:"女子住酒店在浴巾发现用过的伟哥"},
+  {rank:30,title:"迟重瑞说全家人每天必须一起吃晚饭"}
+];
+
+const douyinData = [
+  {rank:1,title:"崇尚英雄才会产生英雄",heat:"置顶"},
+  {rank:2,title:"郑丽文率团抵达上海",heat:"1207.5万"},
+  {rank:3,title:"一代人有一代人的神兵利器",heat:"1196.0万"},
+  {rank:4,title:"清明假期为春季消费注入活力",heat:"1110.7万"},
+  {rank:5,title:"苏林当选越南国家主席",heat:"1109.0万"},
+  {rank:6,title:"假期留个IP再走吧",heat:"1028.0万"},
+  {rank:7,title:"我用摄影看世界",heat:"1024.0万"},
+  {rank:8,title:"亮司限定版簪花少年郎",heat:"914.8万"},
+  {rank:9,title:"来成都你就吃吧",heat:"913.8万"},
+  {rank:10,title:"春天就要去春游",heat:"913.8万"},
+  {rank:11,title:"荆芥为什么走不出河南",heat:"913.4万"},
+  {rank:12,title:"夏季万能穿搭单品",heat:"899.7万"},
+  {rank:13,title:"马鞍山辟谣「有最新怀孕针」",heat:"880.2万"},
+  {rank:14,title:"A股新规正式实施",heat:"858.4万"},
+  {rank:15,title:"液冷行业跻身热门赛道",heat:"827.2万"},
+  {rank:16,title:"周杰伦发布爱琴海MV",heat:"775.1万"},
+  {rank:17,title:"下个小长假是广西三月三",heat:"773.1万"},
+  {rank:18,title:"李乃文进行曲舞蹈挑战",heat:"773.0万"},
+  {rank:19,title:"遇到一辆开往幸福的车",heat:"772.8万"},
+  {rank:20,title:"回头摇挑战",heat:"772.7万"},
+  {rank:21,title:"乘风2026一公选歌组队",heat:"772.4万"},
+  {rank:22,title:"章若楠手势舞我看了一万遍",heat:"772.2万"},
+  {rank:23,title:"逆战未来S2樱之渊赛季上线",heat:"771.7万"},
+  {rank:24,title:"映山红朝鲜语版",heat:"770.5万"},
+  {rank:25,title:"先放一放 来载歌载舞吧",heat:"769.6万"},
+  {rank:26,title:"一切的爱恨都在自寻烦恼",heat:"769.4万"},
+  {rank:27,title:"黄一鸣被限制高消费",heat:"769.3万"},
+  {rank:28,title:"当bro以为自己很有影响力时",heat:"769.1万"},
+  {rank:29,title:"何炅撤回一个震惊",heat:"768.3万"},
+  {rank:30,title:"感知幸福也是一种能力",heat:"768.2万"}
+];
+
+// 餐饮/消费相关高亮
+const foodRelated = new Set([3,4,6,9,10,11,17]);
+const foodRelatedWeibo = new Set([3,4]);
+
+// ── 渲染热榜 ──
+function renderList(data, containerId, platform) {
+  const ul = document.getElementById(containerId);
+  ul.innerHTML = '';
+  data.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'hot-item';
+    const rankClass = item.rank === 1 ? 'rank-1' : item.rank === 2 ? 'rank-2' : item.rank === 3 ? 'rank-3' : 'rank-n';
+    const isFood = platform === 'douyin' ? foodRelated.has(item.rank) : foodRelatedWeibo.has(item.rank);
+    li.innerHTML = `
+      <div class="rank ${rankClass}">${item.rank}</div>
+      <div class="hot-title">${item.title}${isFood ? ' <span style="color:var(--yellow);font-size:11px;">🍴</span>' : ''}</div>
+      ${item.heat ? `<div class="hot-heat">${item.heat}</div>` : ''}
+    `;
+    ul.appendChild(li);
+  });
+}
+
+renderList(weiboData, 'weibo-list', 'weibo');
+renderList(douyinData, 'douyin-list', 'douyin');
+
+// ── Tab 切换 ──
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const names = ['morning','hotlist','meme','strategy','predict'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+}
+
+// ── 平台切换 ──
+function switchPlatform(name) {
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.ptab-' + name).classList.add('active');
+  ['weibo','douyin','xhs'].forEach(p => {
+    document.getElementById('platform-' + p).style.display = p === name ? 'block' : 'none';
+  });
+}
+
+// ── 时间 ──
+function updateTime() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const dateStr = `${now.getFullYear()}/${pad(now.getMonth()+1)}/${pad(now.getDate())}`;
+  const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const weekDays = ['日','一','二','三','四','五','六'];
+  const elTime = document.getElementById('updateTime');
+  const elDate = document.getElementById('reportDate');
+  const elFooter = document.getElementById('footerTime');
+  if (elTime) elTime.textContent = timeStr;
+  if (elDate) elDate.textContent = `${pad(now.getMonth()+1)}/${pad(now.getDate())} 周${weekDays[now.getDay()]}`;
+  if (elFooter) elFooter.textContent = `${dateStr} ${timeStr} 更新`;
+}
+updateTime();
+setInterval(updateTime, 60000);
+</script>
+</body>
+</html>
