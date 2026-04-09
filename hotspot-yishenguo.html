@@ -1,0 +1,829 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>非常AI事儿 · 易生活</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; background: #f7f7f5; color: #37352f; font-size: 15px; line-height: 1.6; }
+
+  .header { background: #fff; border-bottom: 1px solid #e8e8e5; padding: 20px 24px 16px; position: sticky; top: 0; z-index: 100; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-title { font-size: 17px; font-weight: 700; color: #37352f; }
+  .role-badge { font-size: 11px; font-weight: 600; background: #37352f; color: #fff; padding: 2px 8px; border-radius: 4px; }
+  .header-date { font-size: 13px; color: #9b9a97; background: #f1f1ef; padding: 3px 10px; border-radius: 20px; }
+  .tabs { display: flex; gap: 4px; }
+  .tab { padding: 6px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; color: #9b9a97; border: none; background: transparent; transition: all 0.15s; }
+  .tab.active { background: #37352f; color: #fff; }
+  .tab:hover:not(.active) { background: #f1f1ef; color: #37352f; }
+
+  .content { max-width: 680px; margin: 0 auto; padding: 24px 16px 60px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .summary-card { background: #fff; border: 1px solid #e8e8e5; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; }
+  .summary-title { font-size: 12px; font-weight: 600; color: #9b9a97; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .summary-text { font-size: 15px; color: #37352f; line-height: 1.7; }
+  .highlight { background: #fef3c7; padding: 1px 5px; border-radius: 3px; font-weight: 600; }
+  .urgent { background: #fee2e2; color: #dc2626; padding: 1px 5px; border-radius: 3px; font-weight: 600; }
+
+  .platform-section { margin-bottom: 24px; }
+  .platform-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e8e8e5; }
+  .platform-name { font-size: 14px; font-weight: 700; color: #37352f; }
+  .platform-badge { font-size: 11px; color: #9b9a97; background: #f1f1ef; padding: 2px 8px; border-radius: 10px; margin-left: auto; }
+
+  .hot-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f1f1ef; }
+  .hot-item:last-child { border-bottom: none; }
+  .hot-num { font-size: 13px; font-weight: 700; color: #d1d0ce; min-width: 18px; padding-top: 2px; }
+  .hot-num.top3 { color: #e07b39; }
+  .hot-body { flex: 1; }
+  .hot-title { font-size: 15px; font-weight: 600; color: #37352f; margin-bottom: 4px; line-height: 1.4; }
+  .hot-meta { font-size: 12px; color: #9b9a97; margin-bottom: 4px; }
+  .hot-why { font-size: 13px; color: #6b6b6b; margin-bottom: 4px; line-height: 1.5; }
+  .hot-suggest { font-size: 13px; color: #2f80ed; line-height: 1.5; }
+  .hot-link { display: inline-block; margin-top: 6px; font-size: 12px; color: #9b9a97; text-decoration: none; border: 1px solid #e8e8e5; padding: 2px 8px; border-radius: 4px; }
+  .hot-link:hover { background: #f1f1ef; }
+
+  .insight-section { background: #fff; border: 1px solid #e8e8e5; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; }
+  .insight-title { font-size: 12px; font-weight: 700; color: #9b9a97; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+  .insight-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f1f1ef; font-size: 14px; line-height: 1.5; }
+  .insight-item:last-child { border-bottom: none; }
+  .insight-num { font-weight: 700; color: #e07b39; min-width: 16px; }
+
+  /* 同赛道爆款 */
+  .section-block { margin-bottom: 28px; }
+  .section-label { font-size: 12px; font-weight: 700; color: #9b9a97; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e8e8e5; }
+
+  .viral-card { background: #fff; border: 1px solid #e8e8e5; border-radius: 10px; padding: 16px 18px; margin-bottom: 10px; }
+  .viral-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .viral-title { font-size: 15px; font-weight: 600; color: #37352f; line-height: 1.4; flex: 1; }
+  .viral-stats { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+  .stat-pill { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .stat-like { background: #fef3c7; color: #92400e; }
+  .stat-collect { background: #fce7f3; color: #9d174d; }
+  .stat-comment { background: #e0f2fe; color: #075985; }
+  .viral-author { font-size: 12px; color: #9b9a97; margin-bottom: 8px; }
+  .viral-why { font-size: 13px; color: #6b6b6b; line-height: 1.5; margin-bottom: 6px; }
+  .viral-suggest { font-size: 13px; color: #2f80ed; line-height: 1.5; }
+  .viral-link { display: inline-block; margin-top: 8px; font-size: 12px; color: #9b9a97; text-decoration: none; border: 1px solid #e8e8e5; padding: 2px 8px; border-radius: 4px; }
+  .viral-link:hover { background: #f1f1ef; }
+
+  /* 监控博主子区块（在同赛道爆款内） */
+  .monitor-block { background: #f7f7f5; border: 1px solid #e8e8e5; border-radius: 10px; padding: 14px 16px; margin-top: 4px; }
+  .monitor-block .viral-card { background: #fff; }
+
+  /* 孵化账号 */
+  .account-card { background: #fff; border: 1px solid #e8e8e5; border-radius: 10px; padding: 16px 18px; margin-bottom: 12px; }
+  .account-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .account-name { font-size: 15px; font-weight: 700; color: #37352f; }
+  .account-platform { font-size: 11px; color: #9b9a97; background: #f1f1ef; padding: 2px 8px; border-radius: 10px; }
+  .account-stats { display: flex; gap: 20px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #f1f1ef; }
+  .account-stat { text-align: center; }
+  .account-stat-val { font-size: 18px; font-weight: 700; color: #37352f; line-height: 1.2; }
+  .account-stat-val.up { color: #16a34a; }
+  .account-stat-val.down { color: #dc2626; }
+  .account-stat-label { font-size: 11px; color: #9b9a97; margin-top: 2px; }
+
+  .sub-section-title { font-size: 12px; font-weight: 700; color: #9b9a97; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; margin-top: 14px; }
+
+  /* 本周爆款回顾 */
+  .hit-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f1ef; }
+  .hit-item:last-child { border-bottom: none; }
+  .hit-rank { font-size: 18px; font-weight: 700; color: #e07b39; min-width: 24px; line-height: 1.3; }
+  .hit-body { flex: 1; }
+  .hit-title { font-size: 14px; font-weight: 600; color: #37352f; margin-bottom: 5px; line-height: 1.4; text-decoration: none; display: block; }
+  a.hit-title:hover { color: #2f80ed; text-decoration: underline; }
+  .hit-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .hit-tag { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 8px; }
+  .hit-tag.like { background: #fef3c7; color: #92400e; }
+  .hit-tag.collect { background: #fce7f3; color: #9d174d; }
+  .hit-tag.comment { background: #e0f2fe; color: #075985; }
+  .hit-tag.note { background: #f1f1ef; color: #6b6b6b; }
+
+    /* 博主卡片爆款笔记模块 */
+.hit-section { margin-top: 12px; padding-top: 10px; border-top: 1px solid #f1f1ef; }
+.hit-section-title { font-size: 12px; font-weight: 700; color: #e07b39; margin-bottom: 8px; letter-spacing: 0.3px; }
+.hit-section .hit-item { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f7f6f3; }
+.hit-section .hit-item:last-child { border-bottom: none; }
+.hit-section .hit-tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+.hit-section .hit-title { flex: 1; font-size: 13px; font-weight: 500; color: #37352f; line-height: 1.4; }
+.hit-section .hit-stat { font-size: 12px; color: #e07b39; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.tag-emotion { background: #fce7f3; color: #9d174d; }
+.tag-method  { background: #e0f2fe; color: #075985; }
+.tag-tutorial{ background: #d1fae5; color: #065f46; }
+.tag-inspire { background: #ede9fe; color: #5b21b6; }
+.tag-contrast{ background: #fef3c7; color: #92400e; }
+.tag-daily   { background: #f1f1ef; color: #6b6b6b; }
+
+/* 选题命中率 */
+  .hit-rate-card { background: #f7f7f5; border: 1px solid #e8e8e5; border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; }
+  .hit-rate-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .hit-rate-label { font-size: 13px; color: #6b6b6b; }
+  .hit-rate-score { font-size: 20px; font-weight: 700; color: #16a34a; }
+  .hit-rate-score.mid { color: #d97706; }
+  .hit-rate-score.low { color: #dc2626; }
+  .hit-rate-bar-bg { background: #e8e8e5; border-radius: 4px; height: 5px; margin-bottom: 8px; }
+  .hit-rate-bar { height: 5px; border-radius: 4px; background: #16a34a; }
+  .hit-rate-bar.mid { background: #d97706; }
+  .hit-rate-bar.low { background: #dc2626; }
+  .hit-rate-detail { font-size: 12px; color: #9b9a97; line-height: 1.5; }
+
+  /* 热点来源追踪 · 新版 */
+  .source-track-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .source-track-item { background: #fff; border: 1px solid #e8e8e5; border-radius: 8px; padding: 11px 14px; }
+  .source-track-item.st-pending { border-color: #fbbf24; background: #fffbeb; }
+  .source-track-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+  .source-track-title { font-size: 13px; font-weight: 600; color: #37352f; line-height: 1.4; flex: 1; }
+  .source-track-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .badge-high { background: #dcfce7; color: #16a34a; }
+  .badge-mid  { background: #fef9c3; color: #a16207; }
+  .badge-low  { background: #fee2e2; color: #dc2626; }
+  .badge-self { background: #f1f1ef; color: #9b9a97; }
+  .source-track-from { font-size: 12px; line-height: 1.5; margin-bottom: 6px; }
+  .source-track-from.hit  { color: #16a34a; }
+  .source-track-from.pending { color: #d97706; }
+  .source-track-from.self { color: #9b9a97; }
+  /* 操作按钮行 */
+  .st-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .st-btn { font-size: 11px; padding: 3px 9px; border-radius: 6px; border: 1px solid #e8e8e5; background: #fff; color: #6b6b6b; cursor: pointer; transition: all 0.12s; }
+  .st-btn:hover { background: #f1f1ef; }
+  .st-btn.active-hit  { background: #dcfce7; border-color: #86efac; color: #16a34a; font-weight: 600; }
+  .st-btn.active-self { background: #f1f1ef; border-color: #d1d0ce; color: #6b6b6b; font-weight: 600; }
+  /* 命中率卡片 */
+  .hit-rate-card { background: #f7f7f5; border: 1px solid #e8e8e5; border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; }
+  .hit-rate-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .hit-rate-meta { font-size: 11px; color: #9b9a97; margin-top: 4px; }
+
+  .footer { text-align: center; padding: 20px; font-size: 12px; color: #d1d0ce; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-left">
+            <div class="header-title">🤖 非常AI事儿</div>
+      <div class="role-badge">易生活</div>
+    </div>
+    <div class="header-date">04/09 周四</div>
+  </div>
+  <div class="tabs">
+        <button class="tab active" onclick="switchTab('hotspot', this)">热点日报</button>
+    <button class="tab" onclick="switchTab('viral', this)">监控博主</button>
+    <button class="tab" onclick="switchTab('own', this)">账号</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════════
+     Tab 1：热点日报
+══════════════════════════════════ -->
+<div class="tab-panel active" id="tab-hotspot">
+
+  <div class="summary-card">
+    <div class="summary-title">今日摘要</div>
+    <div class="summary-text">
+      今日跨平台共振热点 <span class="highlight">3 个</span>，最强话题：
+      <span class="highlight">12人花30万买月薪2500的高铁工作</span>、
+      <span class="highlight">沪指逼近4000点</span>、
+      <span class="highlight">清明假期消费</span>。
+      <span class="urgent">⚡ 紧急</span> 清明节点内容今明两天窗口期，过期失效。
+    </div>
+  </div>
+
+  <!-- 小红书 -->
+  <div class="platform-section">
+    <div class="platform-header"><span>📕</span><span class="platform-name">小红书</span><span class="platform-badge">Top 10</span></div>
+    <div class="hot-item"><div class="hot-num top3">1</div><div class="hot-body"><div class="hot-title">《笑人不笑梗》</div><div class="hot-why">🔥 搞笑内容永不过时，"笑梗"本身就是最强传播钩子，看完想转发</div><div class="hot-suggest">💡 「职场/生活里那些只能笑不能说的梗」，反差感切入，评论区自来水</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=%E7%AC%91%E4%BA%BA%E4%B8%8D%E7%AC%91%E6%A2%97&type=51" target="_blank">🔗 小红书话题</a></div></div>
+    <div class="hot-item"><div class="hot-num top3">2</div><div class="hot-body"><div class="hot-title">总要带小狗看一次海边日出吧</div><div class="hot-why">🔥 宠物+治愈风景，双重情绪价值，「总要」句式自带仪式感</div><div class="hot-suggest">💡 「总要带XXX做一件事」系列，宠物/父母/朋友都能套，情感浓度高</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=%E5%B8%A6%E5%B0%8F%E7%8B%97%E7%9C%8B%E6%B5%B7%E8%BE%B9%E6%97%A5%E5%87%BA&type=51" target="_blank">🔗 小红书话题</a></div></div>
+    <div class="hot-item"><div class="hot-num top3">3</div><div class="hot-body"><div class="hot-title">北京巨难吃但巨会营销的店</div><div class="hot-why">🔥 反向种草+地域话题，「难吃但火」反差感极强，引发本地人共鸣和争议</div><div class="hot-suggest">💡 「你们城市有没有这种店」，发起全国征集，互动率天花板</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=%E9%9A%BE%E5%90%83%E4%BD%86%E4%BC%9A%E8%90%A5%E9%94%80%E7%9A%84%E5%BA%97&type=51" target="_blank">🔗 小红书话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">4</div><div class="hot-body"><div class="hot-title">偶遇胡彦斌公园独自野餐</div><div class="hot-why">🔥 明星接地气瞬间，反差感驱动传播，粉丝+路人双向扩散</div><div class="hot-suggest">💡 「明星的普通时刻」，记录名人日常化的一面，真实感比精修更打动人</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=%E8%83%A1%E5%BD%A6%E6%96%8C%E5%85%AC%E5%9B%AD%E9%87%8E%E9%A4%90&type=51" target="_blank">🔗 小红书话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">5</div><div class="hot-body"><div class="hot-title">坐A380头等舱 阿航VS新航贫富差距</div><div class="hot-why">🔥 奢华体验+对比测评，「贫富差距」标题自带冲突感，猎奇+攀比心理双驱动</div><div class="hot-suggest">💡 「同一件事的穷版vs富版」，从交通/住宿/餐饮切入，对比感强，收藏率高</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=A380%E5%A4%B4%E7%AD%89%E8%88%B1%E4%BD%93%E9%AA%8C&type=51" target="_blank">🔗 小红书话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">6</div><div class="hot-body"><div class="hot-title">清明踏青穿搭指南</div><div class="hot-why">🔥 节日+穿搭双热点叠加，季节性内容平台推流友好，收藏率高</div><div class="hot-suggest">💡 「清明出门不踩雷的5套穿搭」，实用+美观，收藏率天花板</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=%E6%B8%85%E6%98%8E%E8%B8%8F%E9%9D%92%E7%A9%BF%E6%90%AD&type=51" target="_blank">🔗 小红书话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">7</div><div class="hot-body"><div class="hot-title">我在日本超市发现了什么</div><div class="hot-why">🔥 海外探店+信息差，「发现了什么」悬念感驱动点击，猎奇属性强</div><div class="hot-suggest">💡 「国内超市买不到的XX」，对比感+稀缺感，评论区自来水</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=%E6%97%A5%E6%9C%AC%E8%B6%85%E5%B8%82%E5%8F%91%E7%8E%B0&type=51" target="_blank">🔗 小红书话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">8</div><div class="hot-body"><div class="hot-title">月薪5000在上海怎么活</div><div class="hot-why">🔥 就业焦虑+城市生存，「怎么活」的生存感引发强烈共鸣，打工人必点</div><div class="hot-suggest">💡 「月薪XXX在XX城市的真实账单」，真实数据+情感共鸣，转发率极高</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=%E6%9C%88%E8%96%AA5000%E5%9C%A8%E4%B8%8A%E6%B5%B7&type=51" target="_blank">🔗 小红书话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">9</div><div class="hot-body"><div class="hot-title">这届年轻人开始整顿家政</div><div class="hot-why">🔥 消费升级+年轻化话题，「整顿」句式自带主动感，引发同龄人共鸣</div><div class="hot-suggest">💡 「第一次请家政的真实体验」，记录全程，真实感强，评论区互动高</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=%E5%B9%B4%E8%BD%BB%E4%BA%BA%E6%95%B4%E9%A1%BF%E5%AE%B6%E6%94%BF&type=51" target="_blank">🔗 小红书话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">10</div><div class="hot-body"><div class="hot-title">素人改造：普通女生变精致的30天</div><div class="hot-why">🔥 变美叙事+时间跨度，「30天」的挑战感驱动持续关注，完结卷必爆</div><div class="hot-suggest">💡 「普通人的30天改变计划」，记录真实过程，情绪弧度完整，粉丝黏性高</div><a class="hot-link" href="https://www.xiaohongshu.com/search_result?keyword=%E7%B4%A0%E4%BA%BA%E6%94%B9%E9%80%A0%E5%8F%98%E7%B2%BE%E8%87%B4&type=51" target="_blank">🔗 小红书话题</a></div></div>
+  </div>
+
+  <!-- 抖音/头条 -->
+  <div class="platform-section">
+    <div class="platform-header"><span>🔴</span><span class="platform-name">抖音 / 头条</span><span class="platform-badge">Top 10</span></div>
+    <div class="hot-item"><div class="hot-num top3">1</div><div class="hot-body"><div class="hot-title">高压锅气孔堵塞爆炸 附近两人未受伤</div><div class="hot-meta">🔥 1.33亿热度</div><div class="hot-why">安全事故+家庭场景，「我家也有高压锅」的恐惧感驱动点击</div><div class="hot-suggest">💡 「高压锅使用的5个危险误区」，安全科普向，收藏率极高</div><a class="hot-link" href="https://www.douyin.com/search/%E9%AB%98%E5%8E%8B%E9%94%85%E6%B0%94%E5%AD%94%E5%A0%B5%E5%A1%9E%E7%88%86%E7%82%B8" target="_blank">🔗 抖音搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num top3">2</div><div class="hot-body"><div class="hot-title">王毅将访问朝鲜</div><div class="hot-meta">🔥 1.21亿热度</div><div class="hot-why">外交动向+地缘敏感，中朝关系背景下信息差驱动传播</div><div class="hot-suggest">💡 「朝鲜这十年变化有多大」，对比画面呈现，知识类内容B站/抖音双适配</div><a class="hot-link" href="https://www.douyin.com/search/%E7%8E%8B%E6%AF%85%E8%AE%BF%E9%97%AE%E6%9C%9D%E9%B2%9C" target="_blank">🔗 抖音搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num top3">3</div><div class="hot-body"><div class="hot-title">沪指百点长阳逼近4000点</div><div class="hot-meta">🔥 9878万热度</div><div class="hot-why">股市大涨+整数关口，「4000点」本身就是最强钩子，打工人集体关注</div><div class="hot-suggest">💡 「普通人现在该怎么看股市」，不给建议只讲逻辑，共情感强</div><a class="hot-link" href="https://www.douyin.com/search/%E6%B2%AA%E6%8C%87%E9%80%BC%E8%BF%914000%E7%82%B9" target="_blank">🔗 抖音搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">4</div><div class="hot-body"><div class="hot-title">12人花30万买月薪2500的高铁工作</div><div class="hot-meta">🔥 8938万热度</div><div class="hot-why">「花钱买低薪工作」的荒诞感+信息差，「稳定」执念引发全民讨论</div><div class="hot-suggest">💡 「为什么年轻人宁愿花钱买编制」，深挖就业焦虑，采访真实案例</div><a class="hot-link" href="https://www.douyin.com/search/12%E4%BA%BA%E8%8A%B130%E4%B8%87%E4%B9%B0%E9%AB%98%E9%93%81%E5%B7%A5%E4%BD%9C" target="_blank">🔗 抖音搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">5</div><div class="hot-body"><div class="hot-title">以色列宣布暂停打击伊朗</div><div class="hot-meta">🔥 8088万热度</div><div class="hot-why">中东局势突变，「暂停」背后的博弈逻辑引发好奇</div><div class="hot-suggest">💡 「以伊冲突时间线」，可视化梳理来龙去脉，知识类内容传播力强</div><a class="hot-link" href="https://www.douyin.com/search/%E4%BB%A5%E8%89%B2%E5%88%97%E6%9A%82%E5%81%9C%E6%89%93%E5%87%BB%E4%BC%8A%E6%9C%97" target="_blank">🔗 抖音搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">6</div><div class="hot-body"><div class="hot-title">特朗普关税政策最新动态</div><div class="hot-meta">🔥 7200万热度</div><div class="hot-why">贸易战持续发酵，关税话题与普通人生活关联度高，焦虑感驱动点击</div><div class="hot-suggest">💡 「关税涨了，哪些东西会变贵」，生活化切入，实用信息+情绪共鸣</div><a class="hot-link" href="https://www.douyin.com/search/%E7%89%B9%E6%9C%97%E6%99%AE%E5%85%B3%E7%A8%8E%E6%94%BF%E7%AD%96" target="_blank">🔗 抖音搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">7</div><div class="hot-body"><div class="hot-title">清明假期高速免费时间公布</div><div class="hot-meta">🔥 6500万热度</div><div class="hot-why">出行刚需+政策信息，「免费」二字自带点击率，假期前必看</div><div class="hot-suggest">💡 「清明自驾攻略」，结合免费时间段规划路线，实用内容收藏率高</div><a class="hot-link" href="https://www.douyin.com/search/%E6%B8%85%E6%98%8E%E5%81%87%E6%9C%9F%E9%AB%98%E9%80%9F%E5%85%8D%E8%B4%B9" target="_blank">🔗 抖音搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">8</div><div class="hot-body"><div class="hot-title">网红餐厅排队4小时只为一碗面</div><div class="hot-meta">🔥 5800万热度</div><div class="hot-why">消费行为+猎奇心理，「值不值」的争议感驱动评论区爆发</div><div class="hot-suggest">💡 「我排了4小时队，结果是这样的」，真实体验+反转结局，完播率高</div><a class="hot-link" href="https://www.douyin.com/search/%E7%BD%91%E7%BA%A2%E9%A4%90%E5%8E%85%E6%8E%92%E9%98%9F4%E5%B0%8F%E6%97%B6" target="_blank">🔗 抖音搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">9</div><div class="hot-body"><div class="hot-title">00后整顿职场新方式</div><div class="hot-meta">🔥 5200万热度</div><div class="hot-why">代际话题+职场冲突，「整顿」句式自带主动感，引发全年龄段讨论</div><div class="hot-suggest">💡 「00后同事教会我的3件事」，反向视角，打破刻板印象，共鸣感强</div><a class="hot-link" href="https://www.douyin.com/search/00%E5%90%8E%E6%95%B4%E9%A1%BF%E8%81%8C%E5%9C%BA" target="_blank">🔗 抖音搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">10</div><div class="hot-body"><div class="hot-title">大学生毕业后月薪不如外卖员</div><div class="hot-meta">🔥 4900万热度</div><div class="hot-why">学历贬值焦虑+收入对比，「不如外卖员」的反差感引发强烈讨论</div><div class="hot-suggest">💡 「我放弃白领去送外卖的真实体验」，亲历叙事，情绪浓度极高</div><a class="hot-link" href="https://www.douyin.com/search/%E5%A4%A7%E5%AD%A6%E7%94%9F%E6%9C%88%E8%96%AA%E4%B8%8D%E5%A6%82%E5%A4%96%E5%8D%96%E5%91%98" target="_blank">🔗 抖音搜索</a></div></div>
+  </div>
+
+  <!-- 微博 -->
+  <div class="platform-section">
+    <div class="platform-header"><span>💚</span><span class="platform-name">微博</span><span class="platform-badge">Top 10</span></div>
+    <div class="hot-item"><div class="hot-num top3">1</div><div class="hot-body"><div class="hot-title">宇文玥捞上来了</div><div class="hot-meta">🔥 108万热度 · 剧集</div><div class="hot-why">古装剧热播话题，「捞上来了」的悬念感驱动非粉丝也点击</div><div class="hot-suggest">💡 「古装剧里最让人揪心的剧情」，从《月鳞绮纪》切入，剧粉互动率极高</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E5%AE%87%E6%96%87%E7%8E%A5%E6%8D%9E%E4%B8%8A%E6%9D%A5%E4%BA%86%23" target="_blank">🔗 微博话题</a></div></div>
+    <div class="hot-item"><div class="hot-num top3">2</div><div class="hot-body"><div class="hot-title">美军大批F35将入驻日本三泽基地</div><div class="hot-meta">🔥 76万热度</div><div class="hot-why">军事+地缘政治，「大批F35」数量感+日本驻军话题，国防关注度高</div><div class="hot-suggest">💡 「日本军事化这十年」，数据和地图呈现，知识类内容</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E7%BE%8E%E5%86%9BF35%E5%85%A5%E9%A9%BB%E6%97%A5%E6%9C%AC%23" target="_blank">🔗 微博话题</a></div></div>
+    <div class="hot-item"><div class="hot-num top3">3</div><div class="hot-body"><div class="hot-title">春假撞怀清明 春日消费火力全开</div><div class="hot-meta">🔥 64万热度</div><div class="hot-why">假期+消费热情，季节性话题+正能量叙事，平台推流友好</div><div class="hot-suggest">💡 「这届年轻人清明怎么玩」，扫墓/踏青/旅游三种选择，反差感+生活感</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E6%98%A5%E6%97%A5%E6%B6%88%E8%B4%B9%23" target="_blank">🔗 微博话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">4</div><div class="hot-body"><div class="hot-title">物业大撤退</div><div class="hot-meta">🔥 63万热度</div><div class="hot-why">民生话题+业主权益，「物业撤退」引发「我们小区会不会」的焦虑</div><div class="hot-suggest">💡 「物业撤了之后，小区变成什么样」，实地探访，社会观察类内容</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E7%89%A9%E4%B8%9A%E5%A4%A7%E6%92%A4%E9%80%80%23" target="_blank">🔗 微博话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">5</div><div class="hot-body"><div class="hot-title">住酒店不带毛巾的人天塌了</div><div class="hot-meta">🔥 62万热度</div><div class="hot-why">生活习惯话题+政策变化，「天塌了」夸张表达引发共鸣，轻松话题高互动</div><div class="hot-suggest">💡 「酒店不提供一次性用品后，你的旅行包里多了什么」，评论区自来水</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E9%85%92%E5%BA%97%E4%B8%8D%E6%8F%90%E4%BE%9B%E6%AF%9B%E5%B7%BE%23" target="_blank">🔗 微博话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">6</div><div class="hot-body"><div class="hot-title">某明星疑似恋情曝光</div><div class="hot-meta">🔥 58万热度</div><div class="hot-why">娱乐八卦永不过时，粉丝+路人双向扩散，话题持续发酵</div><div class="hot-suggest">💡 「娱乐圈恋情公开的正确方式」，借势话题，观点类内容互动率高</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E6%98%8E%E6%98%9F%E6%81%8B%E6%83%85%E6%9B%9D%E5%85%89%23" target="_blank">🔗 微博话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">7</div><div class="hot-body"><div class="hot-title">高考倒计时60天</div><div class="hot-meta">🔥 52万热度</div><div class="hot-why">教育话题+时间节点，「60天」的紧迫感驱动家长+学生双向关注</div><div class="hot-suggest">💡 「高考前60天，我做了什么」，亲历叙事，情绪共鸣强，家长必转</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E9%AB%98%E8%80%83%E5%80%92%E8%AE%A1%E6%97%B660%E5%A4%A9%23" target="_blank">🔗 微博话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">8</div><div class="hot-body"><div class="hot-title">网红城市旅游退潮</div><div class="hot-meta">🔥 47万热度</div><div class="hot-why">旅游话题+反思叙事，「退潮」的转折感引发讨论，清明假期前高度相关</div><div class="hot-suggest">💡 「去过XX网红城市后，我后悔了吗」，真实体验+反转，完播率高</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E7%BD%91%E7%BA%A2%E5%9F%8E%E5%B8%82%E6%97%85%E6%B8%B8%E9%80%80%E6%BD%AE%23" target="_blank">🔗 微博话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">9</div><div class="hot-body"><div class="hot-title">外卖平台价格战再起</div><div class="hot-meta">🔥 43万热度</div><div class="hot-why">消费话题+平台竞争，「价格战」直接利好消费者，打工人必关注</div><div class="hot-suggest">💡 「外卖平台哪家最便宜」，横向对比测评，实用信息收藏率高</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E5%A4%96%E5%8D%96%E5%B9%B3%E5%8F%B0%E4%BB%B7%E6%A0%BC%E6%88%98%23" target="_blank">🔗 微博话题</a></div></div>
+    <div class="hot-item"><div class="hot-num">10</div><div class="hot-body"><div class="hot-title">年轻人开始流行「反向旅游」</div><div class="hot-meta">🔥 39万热度</div><div class="hot-why">旅游新趋势+反主流叙事，「反向」的反差感驱动好奇，清明假期高度相关</div><div class="hot-suggest">💡 「我去了一个没人去的地方」，小众目的地探访，差异化内容</div><a class="hot-link" href="https://s.weibo.com/weibo?q=%23%E5%8F%8D%E5%90%91%E6%97%85%E6%B8%B8%23" target="_blank">🔗 微博话题</a></div></div>
+  </div>
+
+  <!-- B站 -->
+  <div class="platform-section">
+    <div class="platform-header"><span>📺</span><span class="platform-name">B站</span><span class="platform-badge">Top 10</span></div>
+    <div class="hot-item"><div class="hot-num top3">1</div><div class="hot-body"><div class="hot-title">幸福是如童话般美好的念想，而生活的疲惫却更贴近我的日常【学姐系列完结卷】</div><div class="hot-why">🔥 情感共鸣+系列完结，「完结卷」自带仪式感，学姐系列粉丝黏性极高</div><div class="hot-suggest">💡 「普通人的生活流水账」，用真实疲惫感对抗精致滤镜，情感厚度极高</div><a class="hot-link" href="https://www.bilibili.com/video/BV1DTSUB1Evb" target="_blank">🔗 原文</a></div></div>
+    <div class="hot-item"><div class="hot-num top3">2</div><div class="hot-body"><div class="hot-title">当你穿进老钱班</div><div class="hot-why">🔥 穿搭+阶层话题，「老钱风」持续发酵，「穿进去」的代入感驱动点击</div><div class="hot-suggest">💡 「老钱风穿搭的平替版本」，降低门槛，人人都能参与，收藏率天花板</div><a class="hot-link" href="https://www.bilibili.com/video/BV12eSoBFETE" target="_blank">🔗 原文</a></div></div>
+    <div class="hot-item"><div class="hot-num top3">3</div><div class="hot-body"><div class="hot-title">他用一百美元，办了场奥运会</div><div class="hot-why">🔥 极限挑战+创意实验，「100美元办奥运」的荒诞感+执行力，B站最爱的内容类型</div><div class="hot-suggest">💡 「用XX元复刻一件奢侈品体验」，低成本高创意，评论区自来水</div><a class="hot-link" href="https://www.bilibili.com/video/BV1WhDVBTEUf" target="_blank">🔗 原文</a></div></div>
+    <div class="hot-item"><div class="hot-num">4</div><div class="hot-body"><div class="hot-title">魔丸练瑜伽</div><div class="hot-why">🔥 反差萌+健身话题，「魔丸」形象做瑜伽的视觉冲击，二次元+健康跨界</div><div class="hot-suggest">💡 「最反差的健身搭档」，找形象反差大的人/角色一起运动，笑点+干货双在线</div><a class="hot-link" href="https://www.bilibili.com/video/BV1UVSUBrEJb" target="_blank">🔗 原文</a></div></div>
+    <div class="hot-item"><div class="hot-num">5</div><div class="hot-body"><div class="hot-title">《先放一放》：偶尔"没心没肺"一下</div><div class="hot-why">🔥 治愈系+打工人解压，「没心没肺」的反向励志，情绪价值极高</div><div class="hot-suggest">💡 「今天什么都不想，就想发呆」，记录一天的彻底放空，反内卷叙事</div><a class="hot-link" href="https://www.bilibili.com/video/BV1xTSQBVEkC" target="_blank">🔗 原文</a></div></div>
+    <div class="hot-item"><div class="hot-num">6</div><div class="hot-body"><div class="hot-title">我花了3年，把出租屋改造成了家</div><div class="hot-why">🔥 居住话题+时间跨度，「3年」的坚持感驱动情感共鸣，租房族必看</div><div class="hot-suggest">💡 「租房改造的正确打开方式」，低成本高颜值，收藏率天花板</div><a class="hot-link" href="https://search.bilibili.com/all?keyword=%E5%87%BA%E7%A7%9F%E5%B1%8B%E6%94%B9%E9%80%A0" target="_blank">🔗 B站搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">7</div><div class="hot-body"><div class="hot-title">中国高铁司机的一天</div><div class="hot-why">🔥 职业探秘+基础设施自豪感，「高铁司机」的神秘感驱动好奇，正能量内容平台推流友好</div><div class="hot-suggest">💡 「普通人看不到的职业日常」，职业探秘系列，知识+情感双在线</div><a class="hot-link" href="https://search.bilibili.com/all?keyword=%E9%AB%98%E9%93%81%E5%8F%B8%E6%9C%BA%E7%9A%84%E4%B8%80%E5%A4%A9" target="_blank">🔗 B站搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">8</div><div class="hot-body"><div class="hot-title">AI画的图，我能分辨出来吗</div><div class="hot-why">🔥 AI话题+挑战赛形式，「能分辨吗」的悬念感驱动完播，科技焦虑共鸣</div><div class="hot-suggest">💡 「AI生成的内容，你能看出来吗」，互动测试形式，评论区自来水</div><a class="hot-link" href="https://search.bilibili.com/all?keyword=AI%E7%94%BB%E7%9A%84%E5%9B%BE%E8%83%BD%E5%88%86%E8%BE%A8%E5%90%97" target="_blank">🔗 B站搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">9</div><div class="hot-body"><div class="hot-title">独居第一年，我学会了什么</div><div class="hot-why">🔥 独居话题+成长叙事，「第一年」的时间节点感强，年轻人强烈共鸣</div><div class="hot-suggest">💡 「独居后才明白的10件事」，干货+情感，收藏率和转发率双高</div><a class="hot-link" href="https://search.bilibili.com/all?keyword=%E7%8B%AC%E5%B1%85%E7%AC%AC%E4%B8%80%E5%B9%B4" target="_blank">🔗 B站搜索</a></div></div>
+    <div class="hot-item"><div class="hot-num">10</div><div class="hot-body"><div class="hot-title">用游戏引擎重制经典老电影场景</div><div class="hot-why">🔥 技术展示+情怀话题，「重制」的对比感驱动老粉+新粉双向关注，B站独特内容</div><div class="hot-suggest">💡 「如果用现在的技术重拍XX」，情怀+创意，B站最爱的内容类型</div><a class="hot-link" href="https://search.bilibili.com/all?keyword=%E6%B8%B8%E6%88%8F%E5%BC%95%E6%93%8E%E9%87%8D%E5%88%B6%E7%BB%8F%E5%85%B8%E7%94%B5%E5%BD%B1" target="_blank">🔗 B站搜索</a></div></div>
+  </div>
+
+  <div class="insight-section">
+    <div class="insight-title">🎯 编导精选 · 跨平台共振</div>
+    <div class="insight-item"><div class="insight-num">①</div><div>12人花30万买月薪2500的高铁工作：头条+微博双平台爆，「花钱买稳定」的执念引发全民讨论，就业焦虑是当下最有共鸣的叙事，<strong>今天就能拍</strong></div></div>
+    <div class="insight-item"><div class="insight-num">②</div><div>春日消费/清明假期：微博+小红书同步发酵，假期窗口期就这两天，踏青/旅游/扫墓三种选择都有内容空间</div></div>
+    <div class="insight-item"><div class="insight-num">③</div><div>股市逼近4000点：头条爆款，打工人集体关注，「普通人视角看股市」是最安全也最有共鸣的切入角度</div></div>
+  </div>
+
+  <div class="insight-section">
+    <div class="insight-title">⚡ 快速选题灵感 · 今天就能拍</div>
+    <div class="insight-item"><div class="insight-num">①</div><div>「高压锅安全使用指南」→ 拍一条「这5个操作会让高压锅爆炸」，安全科普+家庭场景，收藏率天花板</div></div>
+    <div class="insight-item"><div class="insight-num">②</div><div>「住酒店不带毛巾怎么办」→ 街采问路人，反应各异，轻松话题+真实反差，5分钟素材够用</div></div>
+    <div class="insight-item"><div class="insight-num">③</div><div>「物业撤退后小区变成什么样」→ 实地探访，社会观察类，真实感强，清明假期正好有时间</div></div>
+  </div>
+
+</div><!-- /tab-hotspot -->
+
+
+<!-- ══════════════════════════════════
+     Tab 2：监控博主
+     结构：男保洁对标博主 / 保洁女团对标博主
+══════════════════════════════════ -->
+<div class="tab-panel" id="tab-viral">
+
+  <div class="summary-card">
+    <div class="summary-title">监控博主概况</div>
+    <div class="summary-text">
+      持续追踪同赛道标杆博主，分析选题规律与数据趋势。男保洁赛道监控 <span class="highlight">5 位</span>博主，保洁女团赛道监控 <span class="highlight">5 位</span>博主，合计赞藏量最高达 <span class="highlight">1380 万</span>（对话中的暂停）。
+    </div>
+  </div>
+
+  <!-- 男保洁对标博主 -->
+  <div class="section-block">
+    <div class="section-label">👨‍🔧 男保洁 · 对标博主</div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_hi_jiaohui.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="Hi嘉惠主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@Hi嘉惠</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 391万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 31.8万粉丝 · 情感博主</div>
+        <a class="viral-link" href="https://xhslink.com/m/9bTXVIbZZUy" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-emotion">情感共鸣</span><span class="hit-title">婆媳关系怎么样「传声筒」很重要</span><span class="hit-stat">❤️ 10万+</span></div>
+          <div class="hit-item"><span class="hit-tag tag-method">方法论</span><span class="hit-title">这些通过人脉「抄近路」的方法</span><span class="hit-stat">❤️ 10万+</span></div>
+          <div class="hit-item"><span class="hit-tag tag-emotion">情感共鸣</span><span class="hit-title">夫妻本就是一体，爱妻子就是爱自己</span><span class="hit-stat">❤️ 10万+</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_niannian.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="念念的婚后故事主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@念念的婚后故事</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 370.9万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 18.6万粉丝 · 婚后生活 · 情感叙事</div>
+        <a class="viral-link" href="https://xhslink.com/m/30cHkPQvR2y" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-emotion">情感共鸣</span><span class="hit-title">婚姻里的处处忍让，换来的只会是变本加厉</span><span class="hit-stat">❤️ 13.3万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-contrast">反差对比</span><span class="hit-title">年薪50万的两个人，生活差距能有多大</span><span class="hit-stat">❤️ 9.1万</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_laopo.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="我的老婆爱吃肉主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@我的老婆爱吃肉</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 89.6万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 6.3万粉丝 · 家庭生活 · 反差萌</div>
+        <a class="viral-link" href="https://xhslink.com/m/2sR9Hp4AV46" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-emotion">情感共鸣</span><span class="hit-title">原来不是老婆小题大做，而是我在不断犯错</span><span class="hit-stat">❤️ 3.4万</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_chengcheng.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="诚诚爸做家务主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@诚诚爸做家务</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 64.4万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 6.6万粉丝 · 家务干货 · 工具测评</div>
+        <a class="viral-link" href="https://xhslink.com/m/oErLJupoV" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-daily">日常记录</span><span class="hit-title">家务就是一到家就开始了</span><span class="hit-stat">❤️ 13万</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_wenda.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="文达的幸福生活主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@文达的幸福生活</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 73.8万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 3.1万粉丝 · 家庭情感 · 眼里有活</div>
+        <a class="viral-link" href="https://xhslink.com/m/ASPypapyjyP" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-emotion">情感共鸣</span><span class="hit-title">你知道现在普通人想存点钱有多难吗？</span><span class="hit-stat">❤️ 11.3万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-method">方法论</span><span class="hit-title">已婚男人与异性保持边界感</span><span class="hit-stat">❤️ 2.9万</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 保洁女团对标博主 -->
+  <div class="section-block">
+    <div class="section-label">👩‍🔧 保洁女团 · 对标博主</div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_qiangjinv.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="强记女工主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@强记女工</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 353.7万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 70.7万粉丝 · 女性情绪 · 职场心声</div>
+        <a class="viral-link" href="https://xhslink.com/m/8jzxc5Uqw6h" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-inspire">女性励志</span><span class="hit-title">各行各业，女性从未缺席</span><span class="hit-stat">❤️ 51.6万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-inspire">女性励志</span><span class="hit-title">追这种女团不香吗？</span><span class="hit-stat">❤️ 8.2万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-daily">日常记录</span><span class="hit-title">今年38节终于把我们logo卖掉了</span><span class="hit-stat">❤️ 4.1万</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_taxing.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="她行技能站主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@她行技能站</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 319.6万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 89.6万粉丝 · 独居技能 · 生活干货</div>
+        <a class="viral-link" href="https://xhslink.com/m/dc3Lh2WGug" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-tutorial">教程干货</span><span class="hit-title">超简单！手把手带你清理电脑C盘</span><span class="hit-stat">❤️ 14万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-tutorial">教程干货</span><span class="hit-title">滚筒洗衣机深度清洁</span><span class="hit-stat">❤️ 9万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-tutorial">教程干货</span><span class="hit-title">是的，重装系统真的就这么简单</span><span class="hit-stat">❤️ 4.3万</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_tazaikan.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="她在看主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@她在看</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 367.3万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 10.2万粉丝 · 女性视角 · 社会观察</div>
+        <a class="viral-link" href="https://xhslink.com/m/55pFCQ1t5io" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-inspire">女性议题</span><span class="hit-title">真实的女性需求应该被看见</span><span class="hit-stat">❤️ 4.8万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-contrast">人物解读</span><span class="hit-title">发现张小斐的主体性一直很超前</span><span class="hit-stat">❤️ 2.3万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-inspire">女性议题</span><span class="hit-title">永远感谢各行各业勇敢前进的女性</span><span class="hit-stat">❤️ 8928</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_quanyouguang.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="圈有光主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@圈有光</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 99.8万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 治愈系 · 女性成长</div>
+        <a class="viral-link" href="https://xhslink.com/m/6bp3b0LRuMZ" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-inspire">女性议题</span><span class="hit-title">热门女性主义书籍从夯到拉</span><span class="hit-stat">❤️ 4.3万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-emotion">情感共鸣</span><span class="hit-title">就这样真心错付</span><span class="hit-stat">❤️ 2.1万</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="viral-card" style="padding:0;overflow:hidden;">
+      <img src="monitor_duihua.png" style="width:100%;display:block;border-radius:10px 10px 0 0;" alt="对话中的暂停主页">
+      <div style="padding:14px 16px;">
+        <div class="viral-header" style="margin-bottom:6px;">
+          <div class="viral-title">@对话中的暂停</div>
+          <div class="viral-stats"><span class="stat-pill stat-collect">⭐ 1380.1万 赞藏</span></div>
+        </div>
+        <div class="viral-author">📕 小红书 · 181.8万粉丝 · 情感对话 · 赛道最强标杆</div>
+        <a class="viral-link" href="https://xhslink.com/m/7esNL1myFym" target="_blank">🔗 查看主页</a>
+        <div class="hit-section">
+          <div class="hit-section-title">🔥 本周爆款笔记</div>
+          <div class="hit-item"><span class="hit-tag tag-method">方法论</span><span class="hit-title">速答！别人在挨骂，我应该干什么？</span><span class="hit-stat">❤️ 32.2万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-tutorial">教程干货</span><span class="hit-title">那里的毛毛怎么剪？</span><span class="hit-stat">❤️ 18.7万</span></div>
+          <div class="hit-item"><span class="hit-tag tag-inspire">女性议题</span><span class="hit-title">为什么女生也要学这个？</span><span class="hit-stat">❤️ 16.5万</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-viral -->
+
+
+<!-- ══════════════════════════════════
+     Tab 3：账号
+     结构：账号数据 / 本周爆款回顾 / 选题命中率
+══════════════════════════════════ -->
+<div class="tab-panel" id="tab-own">
+
+    <div class="summary-card">
+    <div class="summary-title">本周概况</div>
+    <div class="summary-text">
+      共监测 <span class="highlight">2 个</span>账号，本周发布内容 <span class="highlight">6 条</span>。本周最强单条：<span class="highlight">「九亿少女的梦怎么可能是男人」</span>，点赞 1088。<br><small style="color:#9b9a97">数据截至 04/09 周四，实时以小红书后台为准。</small>
+    </div>
+  </div>
+
+    <!-- ── 男德一见 ── -->
+  <div class="section-block">
+    <div class="section-label">👨‍🔧 男德一见</div>
+
+    <div class="account-card">
+      <div class="account-header">
+        <div class="account-name">@男德一见</div>
+        <div class="account-platform">📕 小红书</div>
+      </div>
+      <div class="account-stats">
+        <div class="account-stat">
+                    <div class="account-stat-val">1.6万</div>
+          <div class="account-stat-label">粉丝总量</div>
+        </div>
+        <div class="account-stat">
+                    <div class="account-stat-val up">—</div>
+          <div class="account-stat-label">本周新增</div>
+        </div>
+        <div class="account-stat">
+          <div class="account-stat-val">3</div>
+          <div class="account-stat-label">本周发布</div>
+        </div>
+        <div class="account-stat">
+          <div class="account-stat-val">440</div>
+          <div class="account-stat-label">本周总互动</div>
+        </div>
+      </div>
+
+            <!-- 本周爆款回顾 -->
+      <div class="sub-section-title">🏆 本周爆款回顾</div>
+      <div class="hit-item">
+        <div class="hit-rank">1</div>
+        <div class="hit-body">
+          <a class="hit-title" href="https://www.xiaohongshu.com/explore/69d5b8f4000000001e00c69d" target="_blank">亲戚说我天天做家务就是脑子有问题😂</a>
+          <div class="hit-tags">
+            <span class="hit-tag like">👍 198</span>
+            <span class="hit-tag collect">⭐ 5</span>
+            <span class="hit-tag comment">💬 11</span>
+            <span class="hit-tag note">情绪共鸣 · 评论互动强</span>
+          </div>
+        </div>
+      </div>
+      <div class="hit-item">
+        <div class="hit-rank">2</div>
+        <div class="hit-body">
+          <a class="hit-title" href="https://www.xiaohongshu.com/explore/69d47954000000001f0071c1" target="_blank">不讲不讲 这点活我自己干就行了🫰</a>
+          <div class="hit-tags">
+            <span class="hit-tag like">👍 111</span>
+            <span class="hit-tag collect">⭐ 73</span>
+            <span class="hit-tag comment">💬 2</span>
+            <span class="hit-tag note">干货 · 收藏率高</span>
+          </div>
+        </div>
+      </div>
+      <div class="hit-item">
+        <div class="hit-rank">3</div>
+        <div class="hit-body">
+          <a class="hit-title" href="https://www.xiaohongshu.com/explore/69d709b6000000002003adfd" target="_blank">什么！物理和保洁也有关系？</a>
+          <div class="hit-tags">
+            <span class="hit-tag like">👍 34</span>
+            <span class="hit-tag collect">⭐ 16</span>
+            <span class="hit-tag comment">💬 1</span>
+            <span class="hit-tag note">创意形式 · 新发布</span>
+          </div>
+        </div>
+      </div>
+
+                  <!-- 选题命中率（JS渲染） -->
+      <div class="sub-section-title">🎯 选题命中率</div>
+      <div id="rate-male"></div>
+      <div class="sub-section-title" style="margin-top:14px;">🔗 本周发布内容 · 热点来源</div>
+      <div id="track-male" class="source-track-list"></div>
+    </div>
+  </div>
+
+  <!-- ── 乘风破浪的保洁姐 ── -->
+  <div class="section-block">
+    <div class="section-label">👩‍🔧 乘风破浪的保洁姐</div>
+
+    <div class="account-card">
+      <div class="account-header">
+        <div class="account-name">@乘风破浪的保洁姐</div>
+        <div class="account-platform">📕 小红书</div>
+      </div>
+      <div class="account-stats">
+        <div class="account-stat">
+          <div class="account-stat-val">8650</div>
+          <div class="account-stat-label">粉丝总量</div>
+        </div>
+        <div class="account-stat">
+          <div class="account-stat-val up">—</div>
+          <div class="account-stat-label">本周新增</div>
+        </div>
+        <div class="account-stat">
+          <div class="account-stat-val">3</div>
+          <div class="account-stat-label">本周发布</div>
+        </div>
+        <div class="account-stat">
+          <div class="account-stat-val">1754</div>
+          <div class="account-stat-label">本周总互动</div>
+        </div>
+      </div>
+
+      <!-- 本周爆款回顾 -->
+      <div class="sub-section-title">🏆 本周爆款回顾</div>
+      <div class="hit-item">
+        <div class="hit-rank">1</div>
+        <div class="hit-body">
+          <a class="hit-title" href="https://www.xiaohongshu.com/explore/69d46622000000001a021a86" target="_blank">九亿少女的梦怎么可能是男人</a>
+          <div class="hit-tags">
+            <span class="hit-tag like">👍 1088</span>
+            <span class="hit-tag collect">⭐ 8</span>
+            <span class="hit-tag comment">💬 14</span>
+            <span class="hit-tag note">情绪共鸣 · 评论互动强</span>
+          </div>
+        </div>
+      </div>
+      <div class="hit-item">
+        <div class="hit-rank">2</div>
+        <div class="hit-body">
+          <a class="hit-title" href="https://www.xiaohongshu.com/explore/69d5b93e000000002102ec09" target="_blank">面对不友好的声音，我就这样反击</a>
+          <div class="hit-tags">
+            <span class="hit-tag like">👍 416</span>
+            <span class="hit-tag collect">⭐ 6</span>
+            <span class="hit-tag comment">💬 10</span>
+            <span class="hit-tag note">观点输出 · 互动活跃</span>
+          </div>
+        </div>
+      </div>
+      <div class="hit-item">
+        <div class="hit-rank">3</div>
+        <div class="hit-body">
+          <a class="hit-title" href="https://www.xiaohongshu.com/explore/69d707e0000000001a02612a" target="_blank">谢谢《我，许可》为我们女人说话</a>
+          <div class="hit-tags">
+            <span class="hit-tag like">👍 205</span>
+            <span class="hit-tag collect">⭐ 4</span>
+            <span class="hit-tag comment">💬 3</span>
+            <span class="hit-tag note">热点借势 · 新发布</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 选题命中率（JS渲染） -->
+      <div class="sub-section-title">🎯 选题命中率</div>
+      <div id="rate-female"></div>
+      <div class="sub-section-title" style="margin-top:14px;">🔗 本周发布内容 · 热点来源</div>
+      <div id="track-female" class="source-track-list"></div>
+    </div>
+  </div>
+
+
+</div><!-- /tab-own -->
+
+</div><!-- /content -->
+
+<div class="footer">非常AI事儿 · 易生活 · 仅供内部使用</div>
+
+<script>
+// ─────────────────────────────────────────────
+// Tab 切换
+// ─────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ─────────────────────────────────────────────
+// 数据层：本周热点池（来自热点早报）
+// ─────────────────────────────────────────────
+const HOT_POOL = [
+  { id:1,  topic:'老公第一次做家务挑战',   platform:'🎵 抖音',   keys:['老公','家务','第一次','挑战','做家务'] },
+  { id:2,  topic:'家居清洁神器测评',       platform:'📕 小红书', keys:['清洁','神器','测评','工具','好用'] },
+  { id:3,  topic:'独居生活必备技能',       platform:'📕 小红书', keys:['独居','技能','生活','必备','自己修','修理'] },
+  { id:4,  topic:'打工人下班后的真实状态', platform:'🎵 抖音',   keys:['打工','下班','真实','状态','疲惫'] },
+  { id:5,  topic:'职场人情绪崩溃瞬间',    platform:'🐦 微博',   keys:['职场','情绪','崩溃','崩了','委屈'] },
+  { id:6,  topic:'租房改造低成本方案',     platform:'📕 小红书', keys:['租房','改造','低成本','出租屋'] },
+  { id:7,  topic:'服务业从业者的心里话',   platform:'🎵 抖音',   keys:['服务业','心里话','想说','说出口','从业者'] },
+  { id:8,  topic:'家务分工引发的争吵',     platform:'🐦 微博',   keys:['家务','分工','争吵','矛盾','吵架'] },
+  { id:9,  topic:'极简生活方式分享',       platform:'📕 小红书', keys:['极简','生活','分享','简约'] },
+  { id:10, topic:'普通人的一天 Vlog',      platform:'📺 B站',    keys:['一天','vlog','日常','流水账','记录'] },
+];
+
+// ─────────────────────────────────────────────
+// 数据层：各账号本周发布内容
+// ─────────────────────────────────────────────
+const POSTS = {
+  male: [
+    { title:'老公第一次做家务，结果把我整笑了' },
+    { title:'男保洁推荐的3个清洁神器，用了就回不去' },
+    { title:'上门保洁遇到最难搞的客户' },
+  ],
+  female: [
+    { title:'独居女生必学：马桶盖松了怎么自己修' },
+    { title:'保洁阿姨想对你说的话，但一直没说出口' },
+    { title:'我们女团保洁的一天' },
+  ],
+};
+
+// ─────────────────────────────────────────────
+// 匹配引擎：关键词重叠度 → 置信度
+// ─────────────────────────────────────────────
+function matchPost(title) {
+  const t = title.toLowerCase();
+  let best = null, bestScore = 0;
+  for (const hot of HOT_POOL) {
+    let score = 0;
+    for (const k of hot.keys) {
+      if (t.includes(k.toLowerCase())) score += k.length >= 4 ? 2 : 1;
+    }
+    if (score > bestScore) { bestScore = score; best = hot; }
+  }
+  // 置信度分级：≥4 高，2-3 中，1 低，0 自选题
+  if (!best || bestScore === 0) return { type:'self', hot:null, conf:0 };
+  const conf = bestScore >= 4 ? 'high' : bestScore >= 2 ? 'mid' : 'low';
+  return { type: conf === 'low' ? 'pending' : 'hit', hot: best, conf };
+}
+
+// ─────────────────────────────────────────────
+// 状态存储（运营手动确认后覆盖自动结果）
+// ─────────────────────────────────────────────
+const STATE = { male: {}, female: {} };
+
+// ─────────────────────────────────────────────
+// 渲染：命中率卡片
+// ─────────────────────────────────────────────
+function renderRate(accountId) {
+  const posts = POSTS[accountId];
+  const st = STATE[accountId];
+  let hitCount = 0;
+  posts.forEach((p, i) => {
+    const override = st[i];
+    const auto = matchPost(p.title);
+    const final = override !== undefined ? override : (auto.type !== 'self' && auto.type !== 'pending' ? 'hit' : auto.type);
+    if (final === 'hit') hitCount++;
+  });
+  const total = posts.length;
+  const pct = Math.round(hitCount / total * 100);
+  const scoreClass = pct >= 67 ? '' : pct >= 40 ? 'mid' : 'low';
+  const barClass = scoreClass ? ' ' + scoreClass : '';
+  const el = document.getElementById('rate-' + accountId);
+  el.innerHTML = `
+    <div class="hit-rate-card">
+      <div class="hit-rate-row">
+        <div class="hit-rate-label">本周命中率（命中热点条数 / 发布总条数）</div>
+        <div class="hit-rate-score${scoreClass ? ' '+scoreClass : ''}">${pct}%</div>
+      </div>
+      <div class="hit-rate-bar-bg"><div class="hit-rate-bar${barClass}" style="width:${pct}%"></div></div>
+      <div class="hit-rate-meta">命中 ${hitCount} 条 / 共发布 ${total} 条 · 自动匹配，黄色标签可手动确认</div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+// 渲染：热点来源追踪列表
+// ─────────────────────────────────────────────
+function renderTrack(accountId) {
+  const posts = POSTS[accountId];
+  const st = STATE[accountId];
+  const container = document.getElementById('track-' + accountId);
+  container.innerHTML = '';
+
+  posts.forEach((p, i) => {
+    const auto = matchPost(p.title);
+    const override = st[i]; // 'hit' | 'self' | undefined
+    // 最终状态
+    let finalType = override !== undefined ? override
+                  : (auto.type === 'pending' ? 'pending'
+                  : auto.type === 'self'    ? 'self' : 'hit');
+
+    // 置信度徽章
+    let badgeHtml = '';
+    if (override !== undefined) {
+      badgeHtml = `<span class="source-track-badge badge-high">✓ 已确认</span>`;
+    } else if (auto.conf === 'high') {
+      badgeHtml = `<span class="source-track-badge badge-high">高置信</span>`;
+    } else if (auto.conf === 'mid') {
+      badgeHtml = `<span class="source-track-badge badge-mid">中置信</span>`;
+    } else if (auto.conf === 'low' || auto.type === 'pending') {
+      badgeHtml = `<span class="source-track-badge badge-low">待确认</span>`;
+    } else {
+      badgeHtml = `<span class="source-track-badge badge-self">自选题</span>`;
+    }
+
+    // 来源文字
+    let fromHtml = '';
+    if (finalType === 'hit' && auto.hot) {
+      fromHtml = `<div class="source-track-from hit">命中热点 #${auto.hot.id} · ${auto.hot.platform}「${auto.hot.topic}」</div>`;
+    } else if (finalType === 'pending' && auto.hot) {
+      fromHtml = `<div class="source-track-from pending">疑似命中热点 #${auto.hot.id} · ${auto.hot.platform}「${auto.hot.topic}」（置信度低，请确认）</div>`;
+    } else {
+      fromHtml = `<div class="source-track-from self">自选题 · 未命中本周热点</div>`;
+    }
+
+    // 操作按钮（高置信自动命中时也显示，允许纠错）
+    const hitActive  = finalType === 'hit'  ? ' active-hit'  : '';
+    const selfActive = finalType === 'self' ? ' active-self' : '';
+    const actionsHtml = `
+      <div class="st-actions">
+        <button class="st-btn${hitActive}"  onclick="setOverride('${accountId}',${i},'hit')">✅ 命中热点</button>
+        <button class="st-btn${selfActive}" onclick="setOverride('${accountId}',${i},'self')">— 自选题</button>
+        ${override !== undefined ? `<button class="st-btn" onclick="clearOverride('${accountId}',${i})">↩ 恢复自动</button>` : ''}
+      </div>`;
+
+    const isPending = finalType === 'pending' && override === undefined;
+    const item = document.createElement('div');
+    item.className = 'source-track-item' + (isPending ? ' st-pending' : '');
+    item.innerHTML = `
+      <div class="source-track-header">
+        <div class="source-track-title">${p.title}</div>
+        ${badgeHtml}
+      </div>
+      ${fromHtml}
+      ${actionsHtml}`;
+    container.appendChild(item);
+  });
+}
+
+// ─────────────────────────────────────────────
+// 交互：设置 / 清除手动覆盖
+// ─────────────────────────────────────────────
+function setOverride(accountId, idx, val) {
+  STATE[accountId][idx] = val;
+  renderRate(accountId);
+  renderTrack(accountId);
+}
+function clearOverride(accountId, idx) {
+  delete STATE[accountId][idx];
+  renderRate(accountId);
+  renderTrack(accountId);
+}
+
+// ─────────────────────────────────────────────
+// 初始化
+// ─────────────────────────────────────────────
+renderRate('male');   renderTrack('male');
+renderRate('female'); renderTrack('female');
+</script>
+</body>
+</html>
+
+
+
+
