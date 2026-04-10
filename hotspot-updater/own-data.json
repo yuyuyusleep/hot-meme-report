@@ -1,0 +1,113 @@
+{
+  "accounts": [
+    {
+      "id": "male",
+      "name": "@男德一见",
+      "icon": "👨‍🔧",
+      "label": "男德一见",
+      "platform": "📕 小红书",
+      "profileUrl": "https://www.xiaohongshu.com/user/profile/614824c90000000002025c2e",
+      "fans": "1.6万",
+      "totalLikes": "",
+      "totalNotes": "",
+      "weekPublished": 3,
+      "weekInteraction": 440,
+      "weekNotes": [
+        {
+          "url": "https://www.xiaohongshu.com/explore/69d5b8f4000000001e00c69d",
+          "title": "亲戚说我天天做家务就是脑子有问题😂",
+          "likes": "198",
+          "collects": "5",
+          "comments": "11"
+        },
+        {
+          "url": "https://www.xiaohongshu.com/explore/69d47954000000001f0071c1",
+          "title": "不讲不讲 这点活我自己干就行了🫰",
+          "likes": "111",
+          "collects": "73",
+          "comments": "2"
+        },
+        {
+          "url": "https://www.xiaohongshu.com/explore/69d709b6000000002003adfd",
+          "title": "什么！物理和保洁也有关系？",
+          "likes": "34",
+          "collects": "16",
+          "comments": "1"
+        }
+      ]
+    },
+    {
+      "id": "female",
+      "name": "@乘风破浪的保洁姐",
+      "icon": "👩‍🔧",
+      "label": "乘风破浪的保洁姐",
+      "platform": "📕 小红书",
+      "profileUrl": "https://www.xiaohongshu.com/user/profile/67614697000000001801fbdb",
+      "fans": "8650",
+      "totalLikes": "",
+      "totalNotes": "",
+      "weekPublished": 3,
+      "weekInteraction": 1754,
+      "weekNotes": [
+        {
+          "url": "https://www.xiaohongshu.com/explore/69d46622000000001a021a86",
+          "title": "九亿少女的梦怎么可能是男人",
+          "likes": "1088",
+          "collects": "8",
+          "comments": "14"
+        },
+        {
+          "url": "https://www.xiaohongshu.com/explore/69d5b93e000000002102ec09",
+          "title": "面对不友好的声音，我就这样反击",
+          "likes": "416",
+          "collects": "6",
+          "comments": "10"
+        },
+        {
+          "url": "https://www.xiaohongshu.com/explore/69d707e0000000001a02612a",
+          "title": "谢谢《我，许可》为我们女人说话",
+          "likes": "205",
+          "collects": "4",
+          "comments": "3"
+        }
+      ]
+    },
+    {
+      "id": "brand",
+      "name": "@黑钻会员编辑部",
+      "icon": "💎",
+      "label": "黑钻会员编辑部",
+      "platform": "📕 小红书",
+      "profileUrl": "https://www.xiaohongshu.com/user/profile/6970927b0000000014015e50",
+      "fans": "1.3万",
+      "totalLikes": "3.3万",
+      "totalNotes": "926",
+      "weekPublished": 3,
+      "weekInteraction": 0,
+      "weekNotes": [
+        {
+          "url": "https://www.xiaohongshu.com/explore/698c4bba000000002801f7f6",
+          "title": "🤫一本正经说瞎话 确实有难度",
+          "likes": "9267",
+          "collects": "",
+          "comments": ""
+        },
+        {
+          "url": "https://www.xiaohongshu.com/explore/69b8fceb000000001a028b7f",
+          "title": "这期建议不要上班看",
+          "likes": "2893",
+          "collects": "",
+          "comments": ""
+        },
+        {
+          "url": "https://www.xiaohongshu.com/explore/69c206620000000022003aae",
+          "title": "没有提示，纯搞心态",
+          "likes": "1329",
+          "collects": "",
+          "comments": ""
+        }
+      ]
+    }
+  ],
+  "updatedAt": "2026-04-10T04:47:00.000Z"
+}
