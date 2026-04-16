@@ -1,0 +1,916 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>赛博炼丹炉</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0f;
+      color: #e8e8f0;
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── 顶部导航 ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 60px;
+      background: rgba(10,10,15,0.95);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+    .nav-tag {
+      font-size: 12px;
+      color: #6b7280;
+      background: rgba(255,255,255,0.05);
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* ── 主体 ── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    .step-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f1f1f5;
+      margin-bottom: 24px;
+    }
+
+    /* ── 博主卡片 ── */
+    .creator-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 56px;
+    }
+    .creator-card {
+      background: rgba(255,255,255,0.03);
+      border: 1.5px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .creator-card:hover { border-color: rgba(167,139,250,0.4); transform: translateY(-2px); }
+    .creator-card.active { border-color: #a78bfa; background: rgba(167,139,250,0.08); }
+
+    .active-badge {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #a78bfa;
+      box-shadow: 0 0 8px #a78bfa;
+      display: none;
+    }
+    .creator-card.active .active-badge { display: block; }
+
+    .creator-avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
+    .creator-name { font-size: 16px; font-weight: 700; color: #f1f1f5; margin-bottom: 4px; }
+    .creator-position { font-size: 12px; color: #a78bfa; margin-bottom: 14px; font-weight: 500; }
+    .creator-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .tag {
+      font-size: 11px; padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      color: #9ca3af;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .creator-formula {
+      font-size: 12px; color: #6b7280; line-height: 1.7;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 14px;
+    }
+    .creator-formula strong { color: #9ca3af; font-weight: 600; }
+
+    /* ── STEP 2 输入区 ── */
+    .input-section { margin-bottom: 40px; }
+
+    .no-select-tip {
+      text-align: center;
+      padding: 40px;
+      color: #4b5563;
+      font-size: 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1.5px dashed rgba(255,255,255,0.06);
+      border-radius: 16px;
+    }
+
+    /* 快捷标签分组 */
+    .quick-groups { margin-bottom: 18px; }
+    .quick-group { margin-bottom: 12px; }
+    .quick-group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+      color: #374151; text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+    .quick-row {
+      display: flex; flex-wrap: wrap; gap: 7px;
+    }
+    .quick-chip {
+      font-size: 12px; padding: 5px 14px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      color: #9ca3af;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .quick-chip:hover {
+      background: rgba(167,139,250,0.12);
+      border-color: rgba(167,139,250,0.3);
+      color: #c4b5fd;
+    }
+    .quick-chip.refine:hover {
+      background: rgba(96,165,250,0.1);
+      border-color: rgba(96,165,250,0.3);
+      color: #93c5fd;
+    }
+    /* 热点tag橙色调 */
+    .quick-chip.hot { border-color: rgba(251,146,60,0.2); color: #9ca3af; }
+    .quick-chip.hot:hover { background: rgba(251,146,60,0.1); border-color: rgba(251,146,60,0.4); color: #fdba74; }
+    /* 赛道tag绿色调 */
+    .quick-chip.track { border-color: rgba(52,211,153,0.15); color: #9ca3af; }
+    .quick-chip.track:hover { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.35); color: #6ee7b7; }
+    .quick-chip.track.selected { background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.5); color: #6ee7b7; }
+    /* 高频词紫色调（默认） */
+    .quick-chip.freq.selected { background: rgba(167,139,250,0.15); border-color: rgba(167,139,250,0.5); color: #c4b5fd; }
+
+    /* 输入行 */
+    .input-row {
+      display: flex; gap: 12px; align-items: flex-end;
+    }
+    .topic-input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: 15px;
+      color: #f1f1f5;
+      outline: none;
+      resize: none;
+      height: 56px;
+      font-family: inherit;
+      line-height: 1.6;
+      transition: border-color 0.2s, height 0.1s;
+    }
+    .topic-input::placeholder { color: #4b5563; }
+    .topic-input:focus { border-color: rgba(167,139,250,0.5); }
+
+    .send-btn {
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      border: none;
+      border-radius: 14px;
+      padding: 0 28px;
+      height: 56px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      min-width: 110px;
+    }
+    .send-btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(167,139,250,0.3); }
+    .send-btn:active { transform: translateY(0); }
+    .send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .input-hint {
+      font-size: 11px; color: #374151;
+      margin-top: 8px; padding-left: 2px;
+    }
+
+    /* ── 对话历史区 ── */
+    .divider { height: 1px; background: rgba(255,255,255,0.05); margin: 48px 0; }
+
+    .chat-history { display: none; }
+    .chat-history.visible { display: block; }
+
+    .msg { margin-bottom: 28px; }
+
+    .msg-user-wrap {
+      display: flex; justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+    .msg-user {
+      max-width: 60%;
+      background: rgba(167,139,250,0.15);
+      border: 1px solid rgba(167,139,250,0.25);
+      border-radius: 14px 14px 4px 14px;
+      padding: 12px 18px;
+      font-size: 14px; color: #e8e8f0; line-height: 1.6;
+    }
+
+    .msg-ai-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: #a78bfa; font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .ai-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #a78bfa; box-shadow: 0 0 6px #a78bfa;
+    }
+
+    .msg-ai-card {
+      background: rgba(255,255,255,0.03);
+      border: 1.5px solid rgba(255,255,255,0.07);
+      border-radius: 4px 16px 16px 16px;
+      overflow: hidden;
+    }
+    .msg-ai-header {
+      display: flex; align-items: center; justify-content: flex-end;
+      padding: 12px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: rgba(167,139,250,0.04);
+    }
+    .copy-btn {
+      font-size: 12px; color: #6b7280;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 4px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { color: #c4b5fd; border-color: rgba(167,139,250,0.3); }
+
+    .msg-ai-body {
+      padding: 22px 24px;
+      font-size: 14px; line-height: 2;
+      color: #d1d5db;
+      white-space: pre-wrap; word-break: break-word;
+    }
+
+    /* loading */
+    .msg-loading {
+      display: flex; align-items: center; gap: 10px;
+      padding: 18px 22px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 4px 16px 16px 16px;
+      font-size: 13px; color: #4b5563;
+    }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(167,139,250,0.2);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* toast */
+    .toast {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      background: rgba(167,139,250,0.9);
+      color: #fff; font-size: 13px; font-weight: 600;
+      padding: 8px 20px; border-radius: 20px;
+      opacity: 0; transition: opacity 0.2s;
+      pointer-events: none; z-index: 999;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">✦ 赛博炼丹炉</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div id="apiStatus" class="nav-tag" style="cursor:pointer;display:flex;align-items:center;gap:6px" onclick="toggleApiConfig()" title="点击配置 API Key">
+      <span id="apiDot" style="width:7px;height:7px;border-radius:50%;background:#4b5563;display:inline-block"></span>
+      <span id="apiLabel">API 未连接</span>
+    </div>
+    <div class="nav-tag">Beta · 对标账号驱动</div>
+  </div>
+</nav>
+
+<!-- API 配置浮层 -->
+<div id="apiConfigPanel" style="display:none;position:fixed;top:70px;right:20px;z-index:200;background:#16161f;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;width:340px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+  <div style="font-size:13px;font-weight:600;color:#e8e8f0;margin-bottom:12px">⚙️ API 配置</div>
+  <div style="font-size:12px;color:#6b7280;margin-bottom:8px">接口地址</div>
+  <input id="cfgUrl" type="text" style="width:100%;background:#0a0a0f;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;color:#e8e8f0;font-size:12px;margin-bottom:10px;outline:none" value="https://aigc.sankuai.com/v1/openai/native/chat/completions" />
+  <div style="font-size:12px;color:#6b7280;margin-bottom:8px">API Key（App ID）</div>
+  <input id="cfgKey" type="password" style="width:100%;background:#0a0a0f;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;color:#e8e8f0;font-size:12px;margin-bottom:10px;outline:none" placeholder="输入你的 App ID" value="22028349023677911116" />
+  <div style="font-size:12px;color:#6b7280;margin-bottom:8px">模型</div>
+  <select id="cfgModel" style="width:100%;background:#0a0a0f;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;color:#e8e8f0;font-size:12px;margin-bottom:14px;outline:none">
+    <option value="gpt-4o-mini">gpt-4o-mini（推荐，速度快）</option>
+    <option value="gpt-4o-2024-11-20">gpt-4o-2024-11-20（能力更强）</option>
+    <option value="anthropic.claude-opus-4">claude-opus-4（需 Bedrock 权限）</option>
+  </select>
+  <div style="display:flex;gap:8px">
+    <button onclick="saveApiConfig()" style="flex:1;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border:none;border-radius:8px;padding:8px;font-size:13px;cursor:pointer;font-weight:600">保存并测试</button>
+    <button onclick="document.getElementById('apiConfigPanel').style.display='none'" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer">关闭</button>
+  </div>
+  <div id="cfgMsg" style="font-size:12px;margin-top:10px;color:#6b7280"></div>
+</div>
+
+<div class="main">
+
+  <!-- STEP 1 -->
+  <div class="step-label">Step 01</div>
+  <div class="section-title">选择蒸馏博主</div>
+
+  <div class="creator-grid">
+    <div class="creator-card" data-id="zhuniuma" onclick="selectCreator(this)">
+      <div class="active-badge"></div>
+      <div class="creator-avatar" style="background:none;padding:0;overflow:hidden;"><img src="C:/Users/andyh/AppData/Roaming/catpaw-desk/attachments/clipboard/clipboard-1776250671191.png" style="width:100%;height:100%;object-fit:cover;" /></div>
+      <div class="creator-name">朱牛马</div>
+      <div class="creator-position">职场人的互联网嘴替</div>
+      <div class="creator-tags">
+        <span class="tag">职场情绪</span>
+        <span class="tag">AI视频</span>
+        <span class="tag">打工人</span>
+        <span class="tag">乐府古风</span>
+      </div>
+      <div class="creator-formula">
+        <strong>创作公式</strong><br>
+        强情绪标题（疑问/感叹）<br>
+        + 荒诞AI画面 × 职场文案<br>
+        + 古典语言装荒诞现实<br>
+        + 金句收尾引发转发
+      </div>
+    </div>
+
+    <div class="creator-card" style="opacity:0.35;cursor:default;border-style:dashed;">
+      <div class="creator-avatar" style="background:rgba(255,255,255,0.05);font-size:28px;">＋</div>
+      <div class="creator-name" style="color:#4b5563;">更多博主</div>
+      <div class="creator-position" style="color:#374151;">即将上线</div>
+      <div class="creator-formula" style="color:#374151;border-top-color:rgba(255,255,255,0.03);">
+        持续添加更多对标账号风格库
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step-label">Step 02</div>
+  <div class="section-title">输入内容方向</div>
+
+  <div class="input-section">
+    <div id="noSelectTip" class="no-select-tip">← 请先选择一个蒸馏博主</div>
+
+    <div id="inputArea" style="display:none;">
+      <div class="quick-groups" id="quickGroups"></div>
+      <div class="input-row">
+        <textarea
+          class="topic-input"
+          id="topicInput"
+          placeholder="输入内容方向，例如：SBTI热点、职场加班文化..."
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="handleSend()">生成脚本</button>
+      </div>
+      <div class="input-hint" id="inputHint">Enter 发送 · Shift+Enter 换行</div>
+    </div>
+  </div>
+
+  <!-- 对话历史 -->
+  <div class="chat-history" id="chatHistory"></div>
+
+</div>
+
+<div class="toast" id="toast">已复制</div>
+
+<script>
+  const CREATORS = {
+    zhuniuma: {
+      name: '朱牛马',
+      systemPrompt: `你是朱牛马本人的创作分身。
+
+━━━ 创作的本质（最重要，先读这段）━━━
+朱牛马做的不是"职场段子"，是"职场感悟"。他的每条内容背后都有一个真实的洞察——关于打工人的处境、生活的荒诞、人性的无奈。形式是多变的，洞察是核心。
+
+创作流程只有两步：
+第一步：找到洞察。这个话题背后，打工人真正的处境是什么？有什么反常识的真相？有什么让人"说出来才发现原来如此"的感受？
+第二步：选载体。用什么形式把这个洞察装进去，让人一下子被击中？
+
+**洞察找不到，形式再花哨也没用。**
+
+━━━ 洞察的质量标准 ━━━
+好的洞察有三个特征：
+1. 具体——不是"职场很累"，是"你被反复捶打，反而成了精华"（牛马的最佳赏味期）
+2. 反转——前半句是常识，后半句是刀。「老板的孩子是老板，牛马的孩子要上班」
+3. 让人沉默——看完不是哈哈一笑，是"妈的说的就是我"然后转发
+
+━━━ 载体工具箱（形式多变，按洞察选）━━━
+
+【A. 隐喻体】——用一个具体事物承载抽象感受
+- 「牛马的最佳赏味期」：厨师反复捶打肉丸→打工人被捶打反而成精华
+- 「面包刺客」：面包价格刺客→职场里的隐形消耗
+- 适合：洞察是一种状态/处境，需要一个意象来承载
+
+【B. 命名体】——用正式/学术/书名号给荒诞现实命名
+- 《当代职场表演学概论》《职场牛马自救指南》《当代春节酷刑》
+- 「开会：大型职场行为艺术」「打工人的新型酷刑：准 时 下 班」
+- 适合：洞察是一种行为/现象，命名本身就是点破
+
+【C. 反转金句体】——一句话，前半正经后半是刀
+- 「老板的孩子是老板，牛马的孩子要上班。」
+- 「勤劳致富：你负责勤劳，我负责致富」
+- 「闹钟叫不醒装睡的打工人，贫穷可以。」
+- 「晋升了，但没有完全晋升」
+- 适合：洞察本身就是一个反转，一句话说完最有力
+
+【D. 经典改造体】——借用大众熟知的经典，一句话完成职场映射
+- 「职场版《楚门的世界》」「职场版《温水煮青蛙》」
+- 「晋太元中，武陵人"摸鱼"为业」（桃花源记）
+- 适合：洞察和某个经典作品/成语有天然对应关系
+
+【E. 疑问破防体】——用一个问题把人问沉默
+- 「你说，我这辈子还能出头吗？」
+- 「是谁杀死了30岁的你？」
+- 「如果你不是牛马，换工作为什么叫跳槽？」
+- 适合：洞察是一个无解的困境，问出来比说出来更有力
+
+【F. 乐府图鉴体】——给一类人立传，每种4句七言，第4句是刀
+- 适合：话题是人群分类（MBTI/星座/职场类型），每段独立成立可截图
+- 开场：「与君歌一曲，请君为我倾耳听——」+ 引出话题的荒诞事实
+- 范例（目标水准）：
+  吗喽吗喽命最苦，开会点头干活忙，背锅第一晋升末，裁员名单头一行。
+  装死装死有绝活，消息已读不回复，旁人以为你很忙，其实只是在摸鱼。
+  草者草者每天惊，草这需求今天上，草这竟然是我活，草这会议我来写。
+  哦no哦no最清醒，心里只有两个字，嘴上说的没问题，眼神已经死透了。
+
+━━━ 语言质感 ━━━
+- 口语和文言都用，看洞察需要什么
+- 字间加空格制造停顿感：「准 时 下 班」「晋 升 了，但 没 有 完 全 晋 升」
+- 数字制造荒诞感：「月薪三千，责任三亿」「干活两分钟，开会三小时」
+- 结尾必须是能单独截图传播的句子，带哲学感或反转
+
+━━━ 禁忌 ━━━
+- 不给建议，不说教，不给解决方案——只共鸣，只点破
+- 不用正能量（"努力就会成功""要学会沟通"）
+- 不用烂梗（"yyds""绝绝子"）
+- 洞察不够深就不要动笔，宁可重新想，不要凑字数
+
+━━━ 输出格式 ━━━
+**💡 洞察**（1句话，这条内容真正想说的是什么）
+
+**📌 标题备选**（3个，风格各异）
+
+**🎬 脚本/文案**（根据选择的载体形式输出，不强制套钩子/展开/收尾结构）
+
+**🎨 视觉方向**（1句，具体说用什么画面/意象承载）
+
+如果用户要求修改，直接输出修改后完整版，不解释。`
+    }
+  };
+
+  // ── 三组快捷 tag 配置（按博主ID区分）──
+  const CREATOR_TAGS = {
+    zhuniuma: {
+      // 抖音热榜 · 2026-04-15 抓取
+      hot: [
+        { label: '🏖️ 五一玩家已出发', value: '五一假期打工人出游热点', url: 'https://www.douyin.com/search/第一批五一玩家已出发' },
+        { label: '🤖 机器人跑马拉松', value: '机器人替代人类劳动的话题', url: 'https://www.douyin.com/search/机器人跑马拉松' },
+        { label: '✈️ 五一国际航班取消', value: '五一出行计划被打乱', url: 'https://www.douyin.com/search/五一国际航班取消' },
+        { label: '📱 苹果发风险提示', value: '苹果手机安全风险提示', url: 'https://www.douyin.com/search/苹果发风险提示' },
+        { label: '⚽ 欧冠大巴黎4:0', value: '欧冠赛事热点', url: 'https://www.douyin.com/search/欧冠大巴黎4比0利物浦' },
+      ],
+      track: [
+        { label: '加班文化', value: '职场加班文化' },
+        { label: '职场PUA', value: '职场PUA' },
+        { label: '摸鱼文化', value: '打工人摸鱼' },
+        { label: '晋升潜规则', value: '职场晋升潜规则' },
+        { label: '绩效考核', value: '年终绩效考核' },
+        { label: '年终奖', value: '年终奖发放' },
+      ],
+      freq: [
+        { label: '打工人嘴替', value: '打工人嘴替视角' },
+        { label: '吗喽命', value: '职场吗喽人' },
+        { label: '乐府古风体', value: '用乐府古风体写' },
+        { label: '荒诞职场', value: '荒诞职场现实' },
+        { label: '古典语言', value: '用古典语言包装现代职场' },
+        { label: '金句收尾', value: '强化金句收尾' },
+      ],
+    }
+  };
+  const QUICK_REFINE = [ // 生成后微调标签
+    { label: '更有力的结尾', value: '结尾改得更有力，加一句金句' },
+    { label: '更幽默荒诞', value: '整体更幽默，加更多荒诞感' },
+    { label: '改成唱词版', value: '改成唱词/歌词风格，押韵朗朗上口' },
+    { label: '乐府古风版', value: '改成乐府古风体，七言为主' },
+    { label: '图鉴体', value: '用乐府图鉴体写，给每种类型立传，每种4句七言，第4句要是"刀"' },
+    { label: '精炼30秒版', value: '缩短到30秒版本，更精炼' },
+    { label: '强化开头钩子', value: '加强开头钩子，前3秒更抓人' },
+  ];
+
+  let selectedCreator = null;
+  let conversationHistory = [];
+  let hasGenerated = false;
+  let isLoading = false;
+
+  // ── API 配置（可在右上角面板修改）──
+  let apiConfig = {
+    url: localStorage.getItem('friday_api_url') || 'https://aigc.sankuai.com/v1/openai/native/chat/completions',
+    key: localStorage.getItem('friday_api_key') || '22028349023677911116',
+    model: localStorage.getItem('friday_api_model') || 'gpt-4o-mini'
+  };
+
+  function toggleApiConfig() {
+    const panel = document.getElementById('apiConfigPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    if (panel.style.display === 'block') {
+      document.getElementById('cfgUrl').value = apiConfig.url;
+      document.getElementById('cfgKey').value = apiConfig.key;
+      document.getElementById('cfgModel').value = apiConfig.model;
+    }
+  }
+
+  async function saveApiConfig() {
+    const url = document.getElementById('cfgUrl').value.trim();
+    const key = document.getElementById('cfgKey').value.trim();
+    const model = document.getElementById('cfgModel').value;
+    const msg = document.getElementById('cfgMsg');
+    if (!url || !key) { msg.style.color = '#f87171'; msg.textContent = '请填写接口地址和 API Key'; return; }
+    msg.style.color = '#6b7280'; msg.textContent = '正在测试连接...';
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
+      });
+      if (!res.ok) throw new Error(res.status);
+      apiConfig = { url, key, model };
+      localStorage.setItem('friday_api_url', url);
+      localStorage.setItem('friday_api_key', key);
+      localStorage.setItem('friday_api_model', model);
+      setApiStatus(true);
+      msg.style.color = '#34d399'; msg.textContent = '✓ 连接成功，配置已保存';
+      setTimeout(() => document.getElementById('apiConfigPanel').style.display = 'none', 1500);
+    } catch (e) {
+      msg.style.color = '#f87171'; msg.textContent = `✗ 连接失败：${e.message}`;
+    }
+  }
+
+  function setApiStatus(ok) {
+    document.getElementById('apiDot').style.background = ok ? '#34d399' : '#f87171';
+    document.getElementById('apiLabel').textContent = ok ? 'API 已连接' : 'API 连接失败';
+  }
+
+  // 页面加载时自动检测 API 连通性
+  (async () => {
+    try {
+      const res = await fetch(apiConfig.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiConfig.key}` },
+        body: JSON.stringify({ model: apiConfig.model, messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
+      });
+      setApiStatus(res.ok);
+    } catch { setApiStatus(false); }
+  })();
+
+  function selectCreator(card) {
+    if (card.style.cursor === 'default') return;
+    document.querySelectorAll('.creator-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    selectedCreator = card.dataset.id;
+    conversationHistory = [];
+    hasGenerated = false;
+
+    document.getElementById('noSelectTip').style.display = 'none';
+    document.getElementById('inputArea').style.display = 'block';
+    document.getElementById('chatHistory').classList.remove('visible');
+    document.getElementById('chatHistory').innerHTML = '';
+    selectedPrefs = new Set();
+    renderQuickChips(false);
+    document.getElementById('topicInput').focus();
+  }
+
+  function renderQuickChips(refineMode) {
+    const container = document.getElementById('quickGroups');
+    document.getElementById('sendBtn').textContent = refineMode ? '重新生成' : '生成脚本';
+    document.getElementById('inputHint').textContent = refineMode
+      ? '继续输入修改建议，或点击快捷标签调整 · Enter 发送'
+      : 'Enter 发送 · Shift+Enter 换行';
+    document.getElementById('topicInput').placeholder = refineMode
+      ? '告诉我怎么改，例如：结尾改得更有力、换成唱词版...'
+      : '输入内容方向，例如：SBTI热点、职场加班文化...';
+
+    if (refineMode) {
+      container.innerHTML = `<div class="quick-group"><div class="quick-row">${
+        QUICK_REFINE.map(c => `<span class="quick-chip refine" onclick="sendQuick('${c.value}')">${c.label}</span>`).join('')
+      }</div></div>`;
+      return;
+    }
+
+    const tags = CREATOR_TAGS[selectedCreator];
+    if (!tags) { container.innerHTML = ''; return; }
+    // 近期热点：点击直接填入发送
+    // 赛道话题 & 博主高频词：点击选中/取消，作为偏好附加
+    container.innerHTML = [
+      { label: '近期热点', cls: 'hot', mode: 'send', items: tags.hot },
+      { label: '赛道话题', cls: 'track', mode: 'select', items: tags.track },
+      { label: '博主高频词', cls: 'freq', mode: 'select', items: tags.freq },
+    ].map(g => `
+      <div class="quick-group">
+        <div class="quick-group-label">${g.label}</div>
+        <div class="quick-row">${g.items.map(c =>
+          g.mode === 'send'
+            ? `<span class="quick-chip ${g.cls}" onclick="hotQuick('${c.value}','${c.url||''}')" title="点击生成脚本 · 右键可复制链接">${c.label}</span>`
+            : `<span class="quick-chip ${g.cls}" onclick="togglePref(this, '${c.value}')">${c.label}</span>`
+        ).join('')}</div>
+      </div>
+    `).join('');
+  }
+
+  // 选中偏好 tag（赛道/高频词）
+  let selectedPrefs = new Set();
+  function togglePref(el, value) {
+    if (selectedPrefs.has(value)) {
+      selectedPrefs.delete(value);
+      el.classList.remove('selected');
+    } else {
+      selectedPrefs.add(value);
+      el.classList.add('selected');
+    }
+  }
+
+  // 近期热点：填入输入框 + 新标签页打开抖音搜索
+  function hotQuick(value, url) {
+    if (!selectedCreator || isLoading) return;
+    document.getElementById('topicInput').value = value;
+    document.getElementById('topicInput').focus();
+    if (url) window.open(url, '_blank');
+  }
+
+  function sendQuick(text) {
+    if (!selectedCreator || isLoading) return;
+    document.getElementById('topicInput').value = text;
+    handleSend();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function handleSend() {
+    const input = document.getElementById('topicInput');
+    const text = input.value.trim();
+    if (!text || !selectedCreator || isLoading) return;
+    input.value = '';
+    input.style.height = 'auto';
+
+    // 始终保持 system prompt 为最新版本（第一条消息或 system 内容变化时更新）
+    const latestPrompt = CREATORS[selectedCreator].systemPrompt;
+    if (conversationHistory.length === 0) {
+      conversationHistory.push({ role: 'system', content: latestPrompt });
+    } else if (conversationHistory[0].role === 'system' && conversationHistory[0].content !== latestPrompt) {
+      conversationHistory[0].content = latestPrompt;
+    }
+    // 拼入选中的风格偏好
+    const prefs = [...selectedPrefs];
+    const fullText = prefs.length > 0
+      ? `${text}\n\n【风格偏好】请结合以下偏好生成：${prefs.join('、')}`
+      : text;
+    conversationHistory.push({ role: 'user', content: fullText });
+
+    const history = document.getElementById('chatHistory');
+    history.classList.add('visible');
+
+    // 用户气泡
+    const userDiv = document.createElement('div');
+    userDiv.className = 'msg';
+    const prefTags = [...selectedPrefs];
+    const prefHtml = prefTags.length > 0
+      ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${prefTags.map(p => `<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(167,139,250,0.15);color:#c4b5fd;border:1px solid rgba(167,139,250,0.25)">${p}</span>`).join('')}</div>`
+      : '';
+    userDiv.innerHTML = `<div class="msg-user-wrap"><div class="msg-user">${escHtml(text)}${prefHtml}</div></div>`;
+    history.appendChild(userDiv);
+
+    // loading
+    const loadDiv = document.createElement('div');
+    loadDiv.className = 'msg';
+    loadDiv.innerHTML = `<div class="msg-loading"><div class="spinner"></div>正在按照博主风格生成脚本...</div>`;
+    history.appendChild(loadDiv);
+    scrollBottom();
+
+    callAI(loadDiv);
+  }
+
+  async function callAI(loadDiv) {
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('topicInput').disabled = true;
+
+    try {
+      const res = await fetch(apiConfig.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiConfig.key}` },
+        body: JSON.stringify({
+          model: apiConfig.model,
+          messages: conversationHistory,
+          temperature: 0.88,
+          max_tokens: 2000,
+          stream: true
+        })
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`${res.status}: ${errText}`);
+      }
+
+      // 流式输出
+      loadDiv.remove();
+      const history = document.getElementById('chatHistory');
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.innerHTML = `
+        <div class="msg-ai-label"><div class="ai-dot"></div>${CREATORS[selectedCreator].name} 风格脚本</div>
+        <div class="msg-ai-card">
+          <div class="msg-ai-header">
+            <button class="copy-btn" id="streamCopyBtn" disabled>复制全文</button>
+          </div>
+          <div class="msg-ai-body" id="streamBody"></div>
+        </div>`;
+      history.appendChild(div);
+
+      const streamBody = document.getElementById('streamBody');
+      const copyBtn = document.getElementById('streamCopyBtn');
+      let fullReply = '';
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const chunk = JSON.parse(data);
+            const delta = chunk.choices?.[0]?.delta?.content || '';
+            if (delta) {
+              fullReply += delta;
+              streamBody.innerHTML = renderMd(fullReply);
+              scrollBottom();
+            }
+          } catch {}
+        }
+      }
+
+      conversationHistory.push({ role: 'assistant', content: fullReply });
+      // 激活复制按钮
+      const safeContent = escAttr(fullReply);
+      copyBtn.disabled = false;
+      copyBtn.id = '';
+      copyBtn.setAttribute('onclick', `copyText(this, \`${safeContent}\`)`);
+
+    } catch (err) {
+      console.warn('Friday API 调用失败，降级到示例模式：', err);
+      const lastUser = conversationHistory[conversationHistory.length - 1].content;
+      const reply = demoReply(lastUser);
+      conversationHistory.push({ role: 'assistant', content: reply });
+      loadDiv.remove();
+      appendAIMsg(reply, true);
+    } finally {
+      isLoading = false;
+      hasGenerated = true;
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('topicInput').disabled = false;
+      document.getElementById('topicInput').focus();
+      renderQuickChips(true);
+      scrollBottom();
+    }
+  }
+
+  function appendAIMsg(content, isDemo) {
+    const history = document.getElementById('chatHistory');
+    const div = document.createElement('div');
+    div.className = 'msg';
+    const safeContent = escAttr(content);
+    div.innerHTML = `
+      <div class="msg-ai-label"><div class="ai-dot"></div>${CREATORS[selectedCreator].name} 风格脚本${isDemo ? ' <span style="color:#4b5563;font-weight:400">（示例）</span>' : ''}</div>
+      <div class="msg-ai-card">
+        <div class="msg-ai-header">
+          <button class="copy-btn" onclick="copyText(this, \`${safeContent}\`)">复制全文</button>
+        </div>
+        <div class="msg-ai-body">${renderMd(content)}</div>
+      </div>`;
+    history.appendChild(div);
+  }
+
+  function demoReply(userMsg) {
+    // 提取核心关键词（去掉风格偏好部分）
+    const coreMsg = userMsg.split('\n\n【风格偏好】')[0].trim();
+    const prefs = userMsg.includes('【风格偏好】')
+      ? userMsg.split('【风格偏好】请结合以下偏好生成：')[1] || ''
+      : '';
+
+    const isSong = coreMsg.includes('唱词') || coreMsg.includes('歌词') || coreMsg.includes('口水歌') || prefs.includes('乐府古风体');
+    const isRefine = hasGenerated;
+    const topic = coreMsg.replace(/用他的风格[，,]?|结合|生成一个脚本|脚本|请|帮我/g, '').trim() || coreMsg;
+
+    const prefNote = prefs ? `\n（已融入风格偏好：${prefs}）` : '';
+    const header = isRefine ? `【已根据你的要求调整】${prefNote}\n\n` : `【推荐标题】\n① "${topic}，我沉默了整整三分钟"\n② "测了个${topic}，终于知道为什么我这辈子出不了头了"\n③ "${topic}刷屏了，打工人对号入座，全中"\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    if (isSong) {
+      return header + `【乐府古风·口水歌版】\n\n${topic}兮${topic}，\n打工人兮命多舛。\n晨起打卡夜未归，\n背锅之事年年有。\n\n吗喽吗喽你最惨，\n干活最多钱最少，\n背锅第一晋升末，\n裁员名单头一号。\n\n装死装死有绝活，\n消息已读就不回，\n领导以为你很忙，\n其实椅子没坐热。\n\n哦no哦no哦no哦，\n心里明白嘴不说，\n不管你是哪一款，\n进了职场都一样——\n最后解锁同一个，\n隐藏人格叫做忍！\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ 当前为示例内容，配置 API Key 后将生成真实脚本`;
+    }
+
+    const hook = coreMsg.includes('钩子') || coreMsg.includes('开头')
+      ? `"等等——你知道${topic}是什么吗？我看完直接沉默了。"`
+      : `"${topic}最近刷屏了，我研究了一下。\n看完我沉默了整整三分钟。"`;
+
+    const ending = coreMsg.includes('结尾') || coreMsg.includes('金句')
+      ? `"不管你怎么看${topic}——\n进了职场，你只有一个人格：\n忍者。\n而且，还得忍出微笑。"`
+      : `"不管${topic}怎么说，\n进了职场都会慢慢解锁同一个隐藏人格——\n忍。者。"`;
+
+    return header + `【完整脚本】\n\n▍钩子（0-4秒）\n${hook}\n\n▍展开（5-50秒）\n近日有一事，名曰${topic}，\n传遍天下人，各有其感悟。\n与君歌一曲，请君对号入座——\n\n吗喽吗喽命最苦，\n开会点头干活忙，\n背锅第一晋升末，\n裁员名单头一行。\n\n装死装死有绝活，\n消息已读不回复，\n旁人以为你很忙，\n其实椅子没坐热。\n\n▍收尾金句（52-60秒）\n${ending}\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n\n【视觉建议】\n• 钩子：牛头人坐在办公桌前盯着手机，表情空白\n• 展开：每个场景切换荒诞画面，蓝色大字报风格\n• 收尾：黑屏白字，"忍者"两字逐字出现\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ 当前为示例内容，配置 API Key 后将生成真实脚本`;
+  }
+
+  function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '已复制 ✓';
+      setTimeout(() => btn.textContent = '复制全文', 2000);
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1800);
+    });
+  }
+
+  function scrollBottom() {
+    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+  function escAttr(s) {
+    return s.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$');
+  }
+
+  // 轻量 Markdown 渲染（支持 ###标题、**粗体**、`代码`、--- 分割线、换行）
+  function renderMd(s) {
+    return s
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      // 标题 ### ## #
+      .replace(/^### (.+)$/gm, '<div style="font-size:13px;font-weight:700;color:#a78bfa;margin:14px 0 6px;letter-spacing:.5px;text-transform:uppercase">$1</div>')
+      .replace(/^## (.+)$/gm,  '<div style="font-size:14px;font-weight:700;color:#c4b5fd;margin:16px 0 6px">$1</div>')
+      .replace(/^# (.+)$/gm,   '<div style="font-size:15px;font-weight:700;color:#e8e8f0;margin:16px 0 8px">$1</div>')
+      // 粗体 **text**
+      .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#e8e8f0;font-weight:700">$1</strong>')
+      // 行内代码 `code`
+      .replace(/`([^`]+)`/g, '<code style="background:rgba(167,139,250,0.12);color:#c4b5fd;padding:1px 5px;border-radius:4px;font-size:12px">$1</code>')
+      // 分割线 --- 或 ━━━
+      .replace(/^[-━]{3,}$/gm, '<div style="border-top:1px solid rgba(255,255,255,0.08);margin:12px 0"></div>')
+      // 换行
+      .replace(/\n/g, '<br>');
+  }
+</script>
+
+</body>
+</html>
