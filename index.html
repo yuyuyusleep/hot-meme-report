@@ -542,6 +542,40 @@
   let hasGenerated = false;
   let isLoading = false;
 
+  // ── 动态加载热点数据 ──────────────────────────────────────────
+  async function loadHotspot() {
+    try {
+      const base = location.hostname === 'localhost' || location.protocol === 'file:'
+        ? 'https://yuyuyusleep.github.io/hot-meme-report'
+        : '';
+      const res = await fetch(`${base}/hotspot.json?t=${Date.now()}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.hot || !data.hot.length) return;
+
+      // 替换朱牛马的热点数据
+      if (CREATOR_TAGS.zhuniuma) {
+        CREATOR_TAGS.zhuniuma.hot = data.hot;
+      }
+
+      // 更新热点区域标题显示更新时间
+      const hotLabel = document.querySelector('.tag-group-label');
+      if (hotLabel && data.updatedAtStr) {
+        hotLabel.textContent = `🔥 近期热点（${data.updatedAtStr} 更新）`;
+      }
+
+      // 如果当前已选中博主，刷新 tag 显示
+      if (selectedCreator) renderTags(selectedCreator);
+
+      console.log(`[热点] 已加载 ${data.hot.length} 条，更新于 ${data.updatedAtStr}`);
+    } catch (e) {
+      console.log('[热点] 加载失败，使用默认数据', e.message);
+    }
+  }
+
+  // 页面加载完成后拉取热点
+  window.addEventListener('DOMContentLoaded', loadHotspot);
+
   // ── API 配置（可在右上角面板修改）──
   let apiConfig = {
     url: localStorage.getItem('friday_api_url') || 'https://aigc.sankuai.com/v1/openai/native/chat/completions',
