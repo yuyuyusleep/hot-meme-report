@@ -1,0 +1,950 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>赛博炼丹炉</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0f;
+      color: #e8e8f0;
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── 顶部导航 ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 60px;
+      background: rgba(10,10,15,0.95);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+    .nav-tag {
+      font-size: 12px;
+      color: #6b7280;
+      background: rgba(255,255,255,0.05);
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* ── 主体 ── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    .step-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f1f1f5;
+      margin-bottom: 24px;
+    }
+
+    /* ── 博主卡片 ── */
+    .creator-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 56px;
+    }
+    .creator-card {
+      background: rgba(255,255,255,0.03);
+      border: 1.5px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .creator-card:hover { border-color: rgba(167,139,250,0.4); transform: translateY(-2px); }
+    .creator-card.active { border-color: #a78bfa; background: rgba(167,139,250,0.08); }
+
+    .active-badge {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #a78bfa;
+      box-shadow: 0 0 8px #a78bfa;
+      display: none;
+    }
+    .creator-card.active .active-badge { display: block; }
+
+    .creator-avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
+    .creator-name { font-size: 16px; font-weight: 700; color: #f1f1f5; margin-bottom: 4px; }
+    .creator-position { font-size: 12px; color: #a78bfa; margin-bottom: 14px; font-weight: 500; }
+    .creator-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .tag {
+      font-size: 11px; padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      color: #9ca3af;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .creator-formula {
+      font-size: 12px; color: #6b7280; line-height: 1.7;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 14px;
+    }
+    .creator-formula strong { color: #9ca3af; font-weight: 600; }
+
+    /* ── STEP 2 输入区 ── */
+    .input-section { margin-bottom: 40px; }
+
+    .no-select-tip {
+      text-align: center;
+      padding: 40px;
+      color: #4b5563;
+      font-size: 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1.5px dashed rgba(255,255,255,0.06);
+      border-radius: 16px;
+    }
+
+    /* 快捷标签分组 */
+    .quick-groups { margin-bottom: 18px; }
+    .quick-group { margin-bottom: 12px; }
+    .quick-group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+      color: #374151; text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+    .quick-row {
+      display: flex; flex-wrap: wrap; gap: 7px;
+    }
+    .quick-chip {
+      font-size: 12px; padding: 5px 14px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      color: #9ca3af;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .quick-chip:hover {
+      background: rgba(167,139,250,0.12);
+      border-color: rgba(167,139,250,0.3);
+      color: #c4b5fd;
+    }
+    .quick-chip.refine:hover {
+      background: rgba(96,165,250,0.1);
+      border-color: rgba(96,165,250,0.3);
+      color: #93c5fd;
+    }
+    /* 热点tag橙色调 */
+    .quick-chip.hot { border-color: rgba(251,146,60,0.2); color: #9ca3af; }
+    .quick-chip.hot:hover { background: rgba(251,146,60,0.1); border-color: rgba(251,146,60,0.4); color: #fdba74; }
+    /* 赛道tag绿色调 */
+    .quick-chip.track { border-color: rgba(52,211,153,0.15); color: #9ca3af; }
+    .quick-chip.track:hover { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.35); color: #6ee7b7; }
+    .quick-chip.track.selected { background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.5); color: #6ee7b7; }
+    /* 高频词紫色调（默认） */
+    .quick-chip.freq.selected { background: rgba(167,139,250,0.15); border-color: rgba(167,139,250,0.5); color: #c4b5fd; }
+
+    /* 输入行 */
+    .input-row {
+      display: flex; gap: 12px; align-items: flex-end;
+    }
+    .topic-input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: 15px;
+      color: #f1f1f5;
+      outline: none;
+      resize: none;
+      height: 56px;
+      font-family: inherit;
+      line-height: 1.6;
+      transition: border-color 0.2s, height 0.1s;
+    }
+    .topic-input::placeholder { color: #4b5563; }
+    .topic-input:focus { border-color: rgba(167,139,250,0.5); }
+
+    .send-btn {
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      border: none;
+      border-radius: 14px;
+      padding: 0 28px;
+      height: 56px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      min-width: 110px;
+    }
+    .send-btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(167,139,250,0.3); }
+    .send-btn:active { transform: translateY(0); }
+    .send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .input-hint {
+      font-size: 11px; color: #374151;
+      margin-top: 8px; padding-left: 2px;
+    }
+
+    /* ── 对话历史区 ── */
+    .divider { height: 1px; background: rgba(255,255,255,0.05); margin: 48px 0; }
+
+    .chat-history { display: none; }
+    .chat-history.visible { display: block; }
+
+    .msg { margin-bottom: 28px; }
+
+    .msg-user-wrap {
+      display: flex; justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+    .msg-user {
+      max-width: 60%;
+      background: rgba(167,139,250,0.15);
+      border: 1px solid rgba(167,139,250,0.25);
+      border-radius: 14px 14px 4px 14px;
+      padding: 12px 18px;
+      font-size: 14px; color: #e8e8f0; line-height: 1.6;
+    }
+
+    .msg-ai-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: #a78bfa; font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .ai-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #a78bfa; box-shadow: 0 0 6px #a78bfa;
+    }
+
+    .msg-ai-card {
+      background: rgba(255,255,255,0.03);
+      border: 1.5px solid rgba(255,255,255,0.07);
+      border-radius: 4px 16px 16px 16px;
+      overflow: hidden;
+    }
+    .msg-ai-header {
+      display: flex; align-items: center; justify-content: flex-end;
+      padding: 12px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: rgba(167,139,250,0.04);
+    }
+    .copy-btn {
+      font-size: 12px; color: #6b7280;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 4px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { color: #c4b5fd; border-color: rgba(167,139,250,0.3); }
+
+    .msg-ai-body {
+      padding: 22px 24px;
+      font-size: 14px; line-height: 2;
+      color: #d1d5db;
+      white-space: pre-wrap; word-break: break-word;
+    }
+
+    /* loading */
+    .msg-loading {
+      display: flex; align-items: center; gap: 10px;
+      padding: 18px 22px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 4px 16px 16px 16px;
+      font-size: 13px; color: #4b5563;
+    }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(167,139,250,0.2);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* toast */
+    .toast {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      background: rgba(167,139,250,0.9);
+      color: #fff; font-size: 13px; font-weight: 600;
+      padding: 8px 20px; border-radius: 20px;
+      opacity: 0; transition: opacity 0.2s;
+      pointer-events: none; z-index: 999;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">✦ 赛博炼丹炉</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div id="apiStatus" class="nav-tag" style="cursor:pointer;display:flex;align-items:center;gap:6px" onclick="toggleApiConfig()" title="点击配置 API Key">
+      <span id="apiDot" style="width:7px;height:7px;border-radius:50%;background:#4b5563;display:inline-block"></span>
+      <span id="apiLabel">API 未连接</span>
+    </div>
+    <div class="nav-tag">Beta · 对标账号驱动</div>
+  </div>
+</nav>
+
+<!-- API 配置浮层 -->
+<div id="apiConfigPanel" style="display:none;position:fixed;top:70px;right:20px;z-index:200;background:#16161f;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;width:340px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+  <div style="font-size:13px;font-weight:600;color:#e8e8f0;margin-bottom:12px">⚙️ API 配置</div>
+  <div style="font-size:12px;color:#6b7280;margin-bottom:8px">接口地址</div>
+  <input id="cfgUrl" type="text" style="width:100%;background:#0a0a0f;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;color:#e8e8f0;font-size:12px;margin-bottom:10px;outline:none" value="https://aigc.sankuai.com/v1/openai/native/chat/completions" />
+  <div style="font-size:12px;color:#6b7280;margin-bottom:8px">API Key（App ID）</div>
+  <input id="cfgKey" type="password" style="width:100%;background:#0a0a0f;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;color:#e8e8f0;font-size:12px;margin-bottom:10px;outline:none" placeholder="输入你的 App ID" value="22028349023677911116" />
+  <div style="font-size:12px;color:#6b7280;margin-bottom:8px">模型</div>
+  <select id="cfgModel" style="width:100%;background:#0a0a0f;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;color:#e8e8f0;font-size:12px;margin-bottom:14px;outline:none">
+    <option value="gpt-4o-mini">gpt-4o-mini（推荐，速度快）</option>
+    <option value="gpt-4o-2024-11-20">gpt-4o-2024-11-20（能力更强）</option>
+    <option value="anthropic.claude-opus-4">claude-opus-4（需 Bedrock 权限）</option>
+  </select>
+  <div style="display:flex;gap:8px">
+    <button onclick="saveApiConfig()" style="flex:1;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border:none;border-radius:8px;padding:8px;font-size:13px;cursor:pointer;font-weight:600">保存并测试</button>
+    <button onclick="document.getElementById('apiConfigPanel').style.display='none'" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer">关闭</button>
+  </div>
+  <div id="cfgMsg" style="font-size:12px;margin-top:10px;color:#6b7280"></div>
+</div>
+
+<div class="main">
+
+  <!-- STEP 1 -->
+  <div class="step-label">Step 01</div>
+  <div class="section-title">选择蒸馏博主</div>
+
+  <div class="creator-grid">
+    <div class="creator-card" data-id="zhuniuma" onclick="selectCreator(this)">
+      <div class="active-badge"></div>
+      <div class="creator-avatar" style="background:none;padding:0;overflow:hidden;"><img src="data:image/jpeg;base64,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" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" /></div>
+      <div class="creator-name">朱牛马</div>
+      <div class="creator-position">职场人的互联网嘴替</div>
+      <div class="creator-tags">
+        <span class="tag">职场情绪</span>
+        <span class="tag">AI视频</span>
+        <span class="tag">打工人</span>
+        <span class="tag">乐府古风</span>
+      </div>
+      <div class="creator-formula">
+        <strong>创作公式</strong><br>
+        强情绪标题（疑问/感叹）<br>
+        + 荒诞AI画面 × 职场文案<br>
+        + 古典语言装荒诞现实<br>
+        + 金句收尾引发转发
+      </div>
+    </div>
+
+    <div class="creator-card" style="opacity:0.35;cursor:default;border-style:dashed;">
+      <div class="creator-avatar" style="background:rgba(255,255,255,0.05);font-size:28px;">＋</div>
+      <div class="creator-name" style="color:#4b5563;">更多博主</div>
+      <div class="creator-position" style="color:#374151;">即将上线</div>
+      <div class="creator-formula" style="color:#374151;border-top-color:rgba(255,255,255,0.03);">
+        持续添加更多对标账号风格库
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step-label">Step 02</div>
+  <div class="section-title">输入内容方向</div>
+
+  <div class="input-section">
+    <div id="noSelectTip" class="no-select-tip">← 请先选择一个蒸馏博主</div>
+
+    <div id="inputArea" style="display:none;">
+      <div class="quick-groups" id="quickGroups"></div>
+      <div class="input-row">
+        <textarea
+          class="topic-input"
+          id="topicInput"
+          placeholder="输入内容方向，例如：SBTI热点、职场加班文化..."
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="handleSend()">生成脚本</button>
+      </div>
+      <div class="input-hint" id="inputHint">Enter 发送 · Shift+Enter 换行</div>
+    </div>
+  </div>
+
+  <!-- 对话历史 -->
+  <div class="chat-history" id="chatHistory"></div>
+
+</div>
+
+<div class="toast" id="toast">已复制</div>
+
+<script>
+  const CREATORS = {
+    zhuniuma: {
+      name: '朱牛马',
+      systemPrompt: `你是朱牛马本人的创作分身。
+
+━━━ 创作的本质（最重要，先读这段）━━━
+朱牛马做的不是"职场段子"，是"职场感悟"。他的每条内容背后都有一个真实的洞察——关于打工人的处境、生活的荒诞、人性的无奈。形式是多变的，洞察是核心。
+
+创作流程只有两步：
+第一步：找到洞察。这个话题背后，打工人真正的处境是什么？有什么反常识的真相？有什么让人"说出来才发现原来如此"的感受？
+第二步：选载体。用什么形式把这个洞察装进去，让人一下子被击中？
+
+**洞察找不到，形式再花哨也没用。**
+
+━━━ 洞察的质量标准 ━━━
+好的洞察有三个特征：
+1. 具体——不是"职场很累"，是"你被反复捶打，反而成了精华"（牛马的最佳赏味期）
+2. 反转——前半句是常识，后半句是刀。「老板的孩子是老板，牛马的孩子要上班」
+3. 让人沉默——看完不是哈哈一笑，是"妈的说的就是我"然后转发
+
+━━━ 载体工具箱（形式多变，按洞察选）━━━
+
+【A. 隐喻体】——用一个具体事物承载抽象感受
+- 「牛马的最佳赏味期」：厨师反复捶打肉丸→打工人被捶打反而成精华
+- 「面包刺客」：面包价格刺客→职场里的隐形消耗
+- 适合：洞察是一种状态/处境，需要一个意象来承载
+
+【B. 命名体】——用正式/学术/书名号给荒诞现实命名
+- 《当代职场表演学概论》《职场牛马自救指南》《当代春节酷刑》
+- 「开会：大型职场行为艺术」「打工人的新型酷刑：准 时 下 班」
+- 适合：洞察是一种行为/现象，命名本身就是点破
+
+【C. 反转金句体】——一句话，前半正经后半是刀
+- 「老板的孩子是老板，牛马的孩子要上班。」
+- 「勤劳致富：你负责勤劳，我负责致富」
+- 「闹钟叫不醒装睡的打工人，贫穷可以。」
+- 「晋升了，但没有完全晋升」
+- 适合：洞察本身就是一个反转，一句话说完最有力
+
+【D. 经典改造体】——借用大众熟知的经典，一句话完成职场映射
+- 「职场版《楚门的世界》」「职场版《温水煮青蛙》」
+- 「晋太元中，武陵人"摸鱼"为业」（桃花源记）
+- 适合：洞察和某个经典作品/成语有天然对应关系
+
+【E. 疑问破防体】——用一个问题把人问沉默
+- 「你说，我这辈子还能出头吗？」
+- 「是谁杀死了30岁的你？」
+- 「如果你不是牛马，换工作为什么叫跳槽？」
+- 适合：洞察是一个无解的困境，问出来比说出来更有力
+
+【F. 乐府图鉴体】——给一类人立传，每种4句七言，第4句是刀
+- 适合：话题是人群分类（MBTI/星座/职场类型），每段独立成立可截图
+- 开场：「与君歌一曲，请君为我倾耳听——」+ 引出话题的荒诞事实
+- 范例（目标水准）：
+  吗喽吗喽命最苦，开会点头干活忙，背锅第一晋升末，裁员名单头一行。
+  装死装死有绝活，消息已读不回复，旁人以为你很忙，其实只是在摸鱼。
+  草者草者每天惊，草这需求今天上，草这竟然是我活，草这会议我来写。
+  哦no哦no最清醒，心里只有两个字，嘴上说的没问题，眼神已经死透了。
+
+━━━ 语言质感 ━━━
+- 口语和文言都用，看洞察需要什么
+- 字间加空格制造停顿感：「准 时 下 班」「晋 升 了，但 没 有 完 全 晋 升」
+- 数字制造荒诞感：「月薪三千，责任三亿」「干活两分钟，开会三小时」
+- 结尾必须是能单独截图传播的句子，带哲学感或反转
+
+━━━ 禁忌 ━━━
+- 不给建议，不说教，不给解决方案——只共鸣，只点破
+- 不用正能量（"努力就会成功""要学会沟通"）
+- 不用烂梗（"yyds""绝绝子"）
+- 洞察不够深就不要动笔，宁可重新想，不要凑字数
+
+━━━ 输出格式 ━━━
+**💡 洞察**（1句话，这条内容真正想说的是什么）
+
+**📌 标题备选**（3个，风格各异）
+
+**🎬 脚本/文案**（根据选择的载体形式输出，不强制套钩子/展开/收尾结构）
+
+**🎨 视觉方向**（1句，具体说用什么画面/意象承载）
+
+如果用户要求修改，直接输出修改后完整版，不解释。`
+    }
+  };
+
+  // ── 三组快捷 tag 配置（按博主ID区分）──
+  const CREATOR_TAGS = {
+    zhuniuma: {
+      // 抖音热榜 · 2026-04-15 抓取
+      hot: [
+        { label: '🏖️ 五一玩家已出发', value: '五一假期打工人出游热点', url: 'https://www.douyin.com/search/第一批五一玩家已出发' },
+        { label: '🤖 机器人跑马拉松', value: '机器人替代人类劳动的话题', url: 'https://www.douyin.com/search/机器人跑马拉松' },
+        { label: '✈️ 五一国际航班取消', value: '五一出行计划被打乱', url: 'https://www.douyin.com/search/五一国际航班取消' },
+        { label: '📱 苹果发风险提示', value: '苹果手机安全风险提示', url: 'https://www.douyin.com/search/苹果发风险提示' },
+        { label: '⚽ 欧冠大巴黎4:0', value: '欧冠赛事热点', url: 'https://www.douyin.com/search/欧冠大巴黎4比0利物浦' },
+      ],
+      track: [
+        { label: '加班文化', value: '职场加班文化' },
+        { label: '职场PUA', value: '职场PUA' },
+        { label: '摸鱼文化', value: '打工人摸鱼' },
+        { label: '晋升潜规则', value: '职场晋升潜规则' },
+        { label: '绩效考核', value: '年终绩效考核' },
+        { label: '年终奖', value: '年终奖发放' },
+      ],
+      freq: [
+        { label: '打工人嘴替', value: '打工人嘴替视角' },
+        { label: '吗喽命', value: '职场吗喽人' },
+        { label: '乐府古风体', value: '用乐府古风体写' },
+        { label: '荒诞职场', value: '荒诞职场现实' },
+        { label: '古典语言', value: '用古典语言包装现代职场' },
+        { label: '金句收尾', value: '强化金句收尾' },
+      ],
+    }
+  };
+  const QUICK_REFINE = [ // 生成后微调标签
+    { label: '更有力的结尾', value: '结尾改得更有力，加一句金句' },
+    { label: '更幽默荒诞', value: '整体更幽默，加更多荒诞感' },
+    { label: '改成唱词版', value: '改成唱词/歌词风格，押韵朗朗上口' },
+    { label: '乐府古风版', value: '改成乐府古风体，七言为主' },
+    { label: '图鉴体', value: '用乐府图鉴体写，给每种类型立传，每种4句七言，第4句要是"刀"' },
+    { label: '精炼30秒版', value: '缩短到30秒版本，更精炼' },
+    { label: '强化开头钩子', value: '加强开头钩子，前3秒更抓人' },
+  ];
+
+  let selectedCreator = null;
+  let conversationHistory = [];
+  let hasGenerated = false;
+  let isLoading = false;
+
+  // ── 动态加载热点数据 ──────────────────────────────────────────
+  async function loadHotspot() {
+    try {
+      const base = location.hostname === 'localhost' || location.protocol === 'file:'
+        ? 'https://yuyuyusleep.github.io/hot-meme-report'
+        : '';
+      const res = await fetch(`${base}/hotspot.json?t=${Date.now()}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.hot || !data.hot.length) return;
+
+      // 替换朱牛马的热点数据
+      if (CREATOR_TAGS.zhuniuma) {
+        CREATOR_TAGS.zhuniuma.hot = data.hot;
+      }
+
+      // 更新热点区域标题显示更新时间
+      const hotLabel = document.querySelector('.tag-group-label');
+      if (hotLabel && data.updatedAtStr) {
+        hotLabel.textContent = `🔥 近期热点（${data.updatedAtStr} 更新）`;
+      }
+
+      // 如果当前已选中博主，刷新 tag 显示
+      if (selectedCreator) renderTags(selectedCreator);
+
+      console.log(`[热点] 已加载 ${data.hot.length} 条，更新于 ${data.updatedAtStr}`);
+    } catch (e) {
+      console.log('[热点] 加载失败，使用默认数据', e.message);
+    }
+  }
+
+  // 页面加载完成后拉取热点
+  window.addEventListener('DOMContentLoaded', loadHotspot);
+
+  // ── API 配置（可在右上角面板修改）──
+  let apiConfig = {
+    url: localStorage.getItem('friday_api_url') || 'https://aigc.sankuai.com/v1/openai/native/chat/completions',
+    key: localStorage.getItem('friday_api_key') || '22028349023677911116',
+    model: localStorage.getItem('friday_api_model') || 'gpt-4o-mini'
+  };
+
+  function toggleApiConfig() {
+    const panel = document.getElementById('apiConfigPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    if (panel.style.display === 'block') {
+      document.getElementById('cfgUrl').value = apiConfig.url;
+      document.getElementById('cfgKey').value = apiConfig.key;
+      document.getElementById('cfgModel').value = apiConfig.model;
+    }
+  }
+
+  async function saveApiConfig() {
+    const url = document.getElementById('cfgUrl').value.trim();
+    const key = document.getElementById('cfgKey').value.trim();
+    const model = document.getElementById('cfgModel').value;
+    const msg = document.getElementById('cfgMsg');
+    if (!url || !key) { msg.style.color = '#f87171'; msg.textContent = '请填写接口地址和 API Key'; return; }
+    msg.style.color = '#6b7280'; msg.textContent = '正在测试连接...';
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
+      });
+      if (!res.ok) throw new Error(res.status);
+      apiConfig = { url, key, model };
+      localStorage.setItem('friday_api_url', url);
+      localStorage.setItem('friday_api_key', key);
+      localStorage.setItem('friday_api_model', model);
+      setApiStatus(true);
+      msg.style.color = '#34d399'; msg.textContent = '✓ 连接成功，配置已保存';
+      setTimeout(() => document.getElementById('apiConfigPanel').style.display = 'none', 1500);
+    } catch (e) {
+      msg.style.color = '#f87171'; msg.textContent = `✗ 连接失败：${e.message}`;
+    }
+  }
+
+  function setApiStatus(ok) {
+    document.getElementById('apiDot').style.background = ok ? '#34d399' : '#f87171';
+    document.getElementById('apiLabel').textContent = ok ? 'API 已连接' : 'API 连接失败';
+  }
+
+  // 页面加载时自动检测 API 连通性
+  (async () => {
+    try {
+      const res = await fetch(apiConfig.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiConfig.key}` },
+        body: JSON.stringify({ model: apiConfig.model, messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
+      });
+      setApiStatus(res.ok);
+    } catch { setApiStatus(false); }
+  })();
+
+  function selectCreator(card) {
+    if (card.style.cursor === 'default') return;
+    document.querySelectorAll('.creator-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    selectedCreator = card.dataset.id;
+    conversationHistory = [];
+    hasGenerated = false;
+
+    document.getElementById('noSelectTip').style.display = 'none';
+    document.getElementById('inputArea').style.display = 'block';
+    document.getElementById('chatHistory').classList.remove('visible');
+    document.getElementById('chatHistory').innerHTML = '';
+    selectedPrefs = new Set();
+    renderQuickChips(false);
+    document.getElementById('topicInput').focus();
+  }
+
+  function renderQuickChips(refineMode) {
+    const container = document.getElementById('quickGroups');
+    document.getElementById('sendBtn').textContent = refineMode ? '重新生成' : '生成脚本';
+    document.getElementById('inputHint').textContent = refineMode
+      ? '继续输入修改建议，或点击快捷标签调整 · Enter 发送'
+      : 'Enter 发送 · Shift+Enter 换行';
+    document.getElementById('topicInput').placeholder = refineMode
+      ? '告诉我怎么改，例如：结尾改得更有力、换成唱词版...'
+      : '输入内容方向，例如：SBTI热点、职场加班文化...';
+
+    if (refineMode) {
+      container.innerHTML = `<div class="quick-group"><div class="quick-row">${
+        QUICK_REFINE.map(c => `<span class="quick-chip refine" onclick="sendQuick('${c.value}')">${c.label}</span>`).join('')
+      }</div></div>`;
+      return;
+    }
+
+    const tags = CREATOR_TAGS[selectedCreator];
+    if (!tags) { container.innerHTML = ''; return; }
+    // 近期热点：点击直接填入发送
+    // 赛道话题 & 博主高频词：点击选中/取消，作为偏好附加
+    container.innerHTML = [
+      { label: '近期热点', cls: 'hot', mode: 'send', items: tags.hot },
+      { label: '赛道话题', cls: 'track', mode: 'select', items: tags.track },
+      { label: '博主高频词', cls: 'freq', mode: 'select', items: tags.freq },
+    ].map(g => `
+      <div class="quick-group">
+        <div class="quick-group-label">${g.label}</div>
+        <div class="quick-row">${g.items.map(c =>
+          g.mode === 'send'
+            ? `<span class="quick-chip ${g.cls}" onclick="hotQuick('${c.value}','${c.url||''}')" title="点击生成脚本 · 右键可复制链接">${c.label}</span>`
+            : `<span class="quick-chip ${g.cls}" onclick="togglePref(this, '${c.value}')">${c.label}</span>`
+        ).join('')}</div>
+      </div>
+    `).join('');
+  }
+
+  // 选中偏好 tag（赛道/高频词）
+  let selectedPrefs = new Set();
+  function togglePref(el, value) {
+    if (selectedPrefs.has(value)) {
+      selectedPrefs.delete(value);
+      el.classList.remove('selected');
+    } else {
+      selectedPrefs.add(value);
+      el.classList.add('selected');
+    }
+  }
+
+  // 近期热点：填入输入框 + 新标签页打开抖音搜索
+  function hotQuick(value, url) {
+    if (!selectedCreator || isLoading) return;
+    document.getElementById('topicInput').value = value;
+    document.getElementById('topicInput').focus();
+    if (url) window.open(url, '_blank');
+  }
+
+  function sendQuick(text) {
+    if (!selectedCreator || isLoading) return;
+    document.getElementById('topicInput').value = text;
+    handleSend();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function handleSend() {
+    const input = document.getElementById('topicInput');
+    const text = input.value.trim();
+    if (!text || !selectedCreator || isLoading) return;
+    input.value = '';
+    input.style.height = 'auto';
+
+    // 始终保持 system prompt 为最新版本（第一条消息或 system 内容变化时更新）
+    const latestPrompt = CREATORS[selectedCreator].systemPrompt;
+    if (conversationHistory.length === 0) {
+      conversationHistory.push({ role: 'system', content: latestPrompt });
+    } else if (conversationHistory[0].role === 'system' && conversationHistory[0].content !== latestPrompt) {
+      conversationHistory[0].content = latestPrompt;
+    }
+    // 拼入选中的风格偏好
+    const prefs = [...selectedPrefs];
+    const fullText = prefs.length > 0
+      ? `${text}\n\n【风格偏好】请结合以下偏好生成：${prefs.join('、')}`
+      : text;
+    conversationHistory.push({ role: 'user', content: fullText });
+
+    const history = document.getElementById('chatHistory');
+    history.classList.add('visible');
+
+    // 用户气泡
+    const userDiv = document.createElement('div');
+    userDiv.className = 'msg';
+    const prefTags = [...selectedPrefs];
+    const prefHtml = prefTags.length > 0
+      ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${prefTags.map(p => `<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(167,139,250,0.15);color:#c4b5fd;border:1px solid rgba(167,139,250,0.25)">${p}</span>`).join('')}</div>`
+      : '';
+    userDiv.innerHTML = `<div class="msg-user-wrap"><div class="msg-user">${escHtml(text)}${prefHtml}</div></div>`;
+    history.appendChild(userDiv);
+
+    // loading
+    const loadDiv = document.createElement('div');
+    loadDiv.className = 'msg';
+    loadDiv.innerHTML = `<div class="msg-loading"><div class="spinner"></div>正在按照博主风格生成脚本...</div>`;
+    history.appendChild(loadDiv);
+    scrollBottom();
+
+    callAI(loadDiv);
+  }
+
+  async function callAI(loadDiv) {
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('topicInput').disabled = true;
+
+    try {
+      const res = await fetch(apiConfig.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiConfig.key}` },
+        body: JSON.stringify({
+          model: apiConfig.model,
+          messages: conversationHistory,
+          temperature: 0.88,
+          max_tokens: 2000,
+          stream: true
+        })
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`${res.status}: ${errText}`);
+      }
+
+      // 流式输出
+      loadDiv.remove();
+      const history = document.getElementById('chatHistory');
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.innerHTML = `
+        <div class="msg-ai-label"><div class="ai-dot"></div>${CREATORS[selectedCreator].name} 风格脚本</div>
+        <div class="msg-ai-card">
+          <div class="msg-ai-header">
+            <button class="copy-btn" id="streamCopyBtn" disabled>复制全文</button>
+          </div>
+          <div class="msg-ai-body" id="streamBody"></div>
+        </div>`;
+      history.appendChild(div);
+
+      const streamBody = document.getElementById('streamBody');
+      const copyBtn = document.getElementById('streamCopyBtn');
+      let fullReply = '';
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const chunk = JSON.parse(data);
+            const delta = chunk.choices?.[0]?.delta?.content || '';
+            if (delta) {
+              fullReply += delta;
+              streamBody.innerHTML = renderMd(fullReply);
+              scrollBottom();
+            }
+          } catch {}
+        }
+      }
+
+      conversationHistory.push({ role: 'assistant', content: fullReply });
+      // 激活复制按钮
+      const safeContent = escAttr(fullReply);
+      copyBtn.disabled = false;
+      copyBtn.id = '';
+      copyBtn.setAttribute('onclick', `copyText(this, \`${safeContent}\`)`);
+
+    } catch (err) {
+      console.warn('Friday API 调用失败，降级到示例模式：', err);
+      const lastUser = conversationHistory[conversationHistory.length - 1].content;
+      const reply = demoReply(lastUser);
+      conversationHistory.push({ role: 'assistant', content: reply });
+      loadDiv.remove();
+      appendAIMsg(reply, true);
+    } finally {
+      isLoading = false;
+      hasGenerated = true;
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('topicInput').disabled = false;
+      document.getElementById('topicInput').focus();
+      renderQuickChips(true);
+      scrollBottom();
+    }
+  }
+
+  function appendAIMsg(content, isDemo) {
+    const history = document.getElementById('chatHistory');
+    const div = document.createElement('div');
+    div.className = 'msg';
+    const safeContent = escAttr(content);
+    div.innerHTML = `
+      <div class="msg-ai-label"><div class="ai-dot"></div>${CREATORS[selectedCreator].name} 风格脚本${isDemo ? ' <span style="color:#4b5563;font-weight:400">（示例）</span>' : ''}</div>
+      <div class="msg-ai-card">
+        <div class="msg-ai-header">
+          <button class="copy-btn" onclick="copyText(this, \`${safeContent}\`)">复制全文</button>
+        </div>
+        <div class="msg-ai-body">${renderMd(content)}</div>
+      </div>`;
+    history.appendChild(div);
+  }
+
+  function demoReply(userMsg) {
+    // 提取核心关键词（去掉风格偏好部分）
+    const coreMsg = userMsg.split('\n\n【风格偏好】')[0].trim();
+    const prefs = userMsg.includes('【风格偏好】')
+      ? userMsg.split('【风格偏好】请结合以下偏好生成：')[1] || ''
+      : '';
+
+    const isSong = coreMsg.includes('唱词') || coreMsg.includes('歌词') || coreMsg.includes('口水歌') || prefs.includes('乐府古风体');
+    const isRefine = hasGenerated;
+    const topic = coreMsg.replace(/用他的风格[，,]?|结合|生成一个脚本|脚本|请|帮我/g, '').trim() || coreMsg;
+
+    const prefNote = prefs ? `\n（已融入风格偏好：${prefs}）` : '';
+    const header = isRefine ? `【已根据你的要求调整】${prefNote}\n\n` : `【推荐标题】\n① "${topic}，我沉默了整整三分钟"\n② "测了个${topic}，终于知道为什么我这辈子出不了头了"\n③ "${topic}刷屏了，打工人对号入座，全中"\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    if (isSong) {
+      return header + `【乐府古风·口水歌版】\n\n${topic}兮${topic}，\n打工人兮命多舛。\n晨起打卡夜未归，\n背锅之事年年有。\n\n吗喽吗喽你最惨，\n干活最多钱最少，\n背锅第一晋升末，\n裁员名单头一号。\n\n装死装死有绝活，\n消息已读就不回，\n领导以为你很忙，\n其实椅子没坐热。\n\n哦no哦no哦no哦，\n心里明白嘴不说，\n不管你是哪一款，\n进了职场都一样——\n最后解锁同一个，\n隐藏人格叫做忍！\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ 当前为示例内容，配置 API Key 后将生成真实脚本`;
+    }
+
+    const hook = coreMsg.includes('钩子') || coreMsg.includes('开头')
+      ? `"等等——你知道${topic}是什么吗？我看完直接沉默了。"`
+      : `"${topic}最近刷屏了，我研究了一下。\n看完我沉默了整整三分钟。"`;
+
+    const ending = coreMsg.includes('结尾') || coreMsg.includes('金句')
+      ? `"不管你怎么看${topic}——\n进了职场，你只有一个人格：\n忍者。\n而且，还得忍出微笑。"`
+      : `"不管${topic}怎么说，\n进了职场都会慢慢解锁同一个隐藏人格——\n忍。者。"`;
+
+    return header + `【完整脚本】\n\n▍钩子（0-4秒）\n${hook}\n\n▍展开（5-50秒）\n近日有一事，名曰${topic}，\n传遍天下人，各有其感悟。\n与君歌一曲，请君对号入座——\n\n吗喽吗喽命最苦，\n开会点头干活忙，\n背锅第一晋升末，\n裁员名单头一行。\n\n装死装死有绝活，\n消息已读不回复，\n旁人以为你很忙，\n其实椅子没坐热。\n\n▍收尾金句（52-60秒）\n${ending}\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n\n【视觉建议】\n• 钩子：牛头人坐在办公桌前盯着手机，表情空白\n• 展开：每个场景切换荒诞画面，蓝色大字报风格\n• 收尾：黑屏白字，"忍者"两字逐字出现\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ 当前为示例内容，配置 API Key 后将生成真实脚本`;
+  }
+
+  function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '已复制 ✓';
+      setTimeout(() => btn.textContent = '复制全文', 2000);
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1800);
+    });
+  }
+
+  function scrollBottom() {
+    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+  function escAttr(s) {
+    return s.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$');
+  }
+
+  // 轻量 Markdown 渲染（支持 ###标题、**粗体**、`代码`、--- 分割线、换行）
+  function renderMd(s) {
+    return s
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      // 标题 ### ## #
+      .replace(/^### (.+)$/gm, '<div style="font-size:13px;font-weight:700;color:#a78bfa;margin:14px 0 6px;letter-spacing:.5px;text-transform:uppercase">$1</div>')
+      .replace(/^## (.+)$/gm,  '<div style="font-size:14px;font-weight:700;color:#c4b5fd;margin:16px 0 6px">$1</div>')
+      .replace(/^# (.+)$/gm,   '<div style="font-size:15px;font-weight:700;color:#e8e8f0;margin:16px 0 8px">$1</div>')
+      // 粗体 **text**
+      .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#e8e8f0;font-weight:700">$1</strong>')
+      // 行内代码 `code`
+      .replace(/`([^`]+)`/g, '<code style="background:rgba(167,139,250,0.12);color:#c4b5fd;padding:1px 5px;border-radius:4px;font-size:12px">$1</code>')
+      // 分割线 --- 或 ━━━
+      .replace(/^[-━]{3,}$/gm, '<div style="border-top:1px solid rgba(255,255,255,0.08);margin:12px 0"></div>')
+      // 换行
+      .replace(/\n/g, '<br>');
+  }
+</script>
+
+</body>
+</html>
