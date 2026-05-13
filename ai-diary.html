@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>秒秒的AI日记</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,0.15);
+  --white-90: rgba(255,255,255,0.9);
+  --white-60: rgba(255,255,255,0.6);
+  --white-35: rgba(255,255,255,0.35);
+  --white-15: rgba(255,255,255,0.15);
+  --white-08: rgba(255,255,255,0.08);
+  --white-04: rgba(255,255,255,0.04);
+}
+
+html, body {
+  background: #000;
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Georgia, serif;
+  overflow: hidden;
+  height: 100vh; width: 100vw;
+  color: rgba(255,255,255,0.85);
+}
+/* 恢复默认鼠标 */
+* { cursor: auto; }
+
+/* 猫爪光标元素隐藏（已停用） */
+#pawCursor { display: none; }
+
+/* ===== 全屏粒子背景 ===== */
+#particleCanvas {
+  position: fixed; top: 0; left: 0;
+  z-index: 0;
+  display: block;
+}
+/* Three.js renderer canvas */
+#threeContainer {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+/* 上传图片展示层 */
+#photoDisplay {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 52vw; max-height: 58vh;
+  object-fit: contain;
+  border-radius: 2px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  display: none;
+  /* 无 mask，边缘碎裂完全由粒子层表现 */
+}
+
+/* ===== 整体布局 ===== */
+.app {
+  position: relative; z-index: 10;
+  height: 100vh;
+  display: flex; flex-direction: column;
+  background: transparent;
+}
+
+/* ===== 顶部导航 ===== */
+nav {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center;
+  padding: 22px 32px;
+  z-index: 20;
+}
+.nav-brand {
+  font-size: 12px; letter-spacing: 1px;
+  color: rgba(255,255,255,0.75);
+  font-weight: 400;
+  min-width: 120px;
+}
+.nav-center {
+  flex: 1; display: flex; justify-content: center; gap: 40px;
+}
+.nav-center a {
+  font-size: 10px; letter-spacing: 2.5px;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase; text-decoration: none;
+  cursor: pointer; transition: color 0.3s;
+}
+.nav-center a.active,
+.nav-center a:hover { color: rgba(255,255,255,0.85); }
+.nav-right {
+  min-width: 120px; display: flex; justify-content: flex-end;
+  align-items: center; gap: 18px;
+}
+.nav-icon {
+  color: rgba(255,255,255,0.4); cursor: pointer;
+  transition: color 0.3s; font-size: 14px;
+  display: flex; align-items: center;
+}
+.nav-icon:hover { color: rgba(255,255,255,0.8); }
+.nav-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+
+/* ===== 页面容器 ===== */
+.page { display: none; flex: 1; }
+.page.active { display: flex; flex-direction: column; }
+
+/* ===== 今晚页面 ===== */
+#page-tonight {
+  position: relative;
+  height: 100vh;
+  align-items: center; justify-content: center;
+}
+
+/* AI 状态 — 浮在粒子上方居中 */
+.ai-status {
+  position: absolute;
+  top: 72px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px;
+  z-index: 15;
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green), 0 0 20px rgba(74,222,128,0.4);
+  animation: pulse-green 2.5s ease-in-out infinite;
+}
+.status-dot.thinking {
+  background: #fbbf24;
+  box-shadow: 0 0 10px #fbbf24, 0 0 20px rgba(251,191,36,0.4);
+  animation: pulse-fast 0.6s ease-in-out infinite;
+}
+.status-dot.recording {
+  background: #f87171;
+  box-shadow: 0 0 10px #f87171, 0 0 20px rgba(248,113,113,0.4);
+  animation: pulse-fast 0.5s ease-in-out infinite;
+}
+@keyframes pulse-green { 0%,100%{opacity:1;box-shadow:0 0 10px var(--green),0 0 20px rgba(74,222,128,0.4)} 50%{opacity:0.6;box-shadow:0 0 6px var(--green),0 0 10px rgba(74,222,128,0.2)} }
+@keyframes pulse-fast { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.ai-name {
+  font-size: 13px; letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.8);
+  font-weight: 300;
+}
+
+/* 设置按钮 — 右上角浮层 */
+.settings-btn {
+  position: absolute; top: 68px; right: 32px;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 15; transition: all 0.3s;
+}
+.settings-btn:hover { background: rgba(255,255,255,0.12); }
+.settings-btn svg { width: 15px; height: 15px; fill: none; stroke: rgba(255,255,255,0.5); stroke-width: 1.5; }
+
+/* 对话气泡 — 浮在粒子上方 */
+.chat-overlay {
+  position: absolute;
+  bottom: 160px; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  padding: 0 24px;
+  z-index: 15;
+  pointer-events: none;
+}
+.chat-bubble {
+  font-size: 15px; line-height: 1.9;
+  color: rgba(255,255,255,0.82);
+  text-align: center;
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6);
+  min-height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 10px;
+}
+.chat-bubble .msg-user {
+  font-style: normal;
+  color: rgba(255,255,255,0.95);
+  font-size: 14px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; padding: 8px 18px;
+  pointer-events: auto;
+  max-width: 100%;
+}
+.chat-bubble .msg-ai {
+  font-style: italic;
+  color: rgba(255,255,255,0.7);
+  font-size: 15px;
+}
+.chat-bubble .typing {
+  color: rgba(255,255,255,0.3);
+  animation: blink-text 1s ease-in-out infinite;
+}
+@keyframes blink-text { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* ===== 底部控制区 ===== */
+.bottom-controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 0 32px 32px;
+  z-index: 15;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+
+/* 时间 + Save Memory + X 行 */
+.control-row {
+  display: flex; align-items: center; gap: 12px;
+}
+.timer-badge {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 11px; letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.5);
+  font-variant-numeric: tabular-nums;
+}
+.save-btn {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 20px; padding: 6px 18px;
+  font-size: 11px; letter-spacing: 2px;
+  color: rgba(255,255,255,0.75);
+  cursor: pointer; text-transform: uppercase;
+  font-family: inherit; transition: all 0.3s;
+  display: flex; align-items: center; gap: 6px;
+}
+.save-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.95); }
+.save-btn .arrow { font-size: 10px; opacity: 0.6; }
+.clear-btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.4); font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s; font-family: inherit;
+}
+.clear-btn:hover { background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.3); color: rgba(248,113,113,0.8); }
+
+/* 麦克风 + 小点 行 */
+.mic-row {
+  display: flex; align-items: center; gap: 28px;
+}
+.mic-btn {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.3s;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+}
+.mic-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); }
+.mic-btn.recording {
+  background: rgba(248,113,113,0.15);
+  border-color: rgba(248,113,113,0.5);
+  box-shadow: 0 0 30px rgba(248,113,113,0.2);
+  animation: pulse-ring 1s ease-in-out infinite;
+}
+@keyframes pulse-ring {
+  0%,100%{ box-shadow: 0 0 0 0 rgba(248,113,113,0.3), 0 4px 30px rgba(0,0,0,0.4); }
+  50%{ box-shadow: 0 0 0 12px rgba(248,113,113,0), 0 4px 30px rgba(0,0,0,0.4); }
+}
+.mic-btn svg { width: 24px; height: 24px; fill: rgba(255,255,255,0.8); }
+.mic-btn.recording svg { fill: #f87171; }
+.dot-btn {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  cursor: pointer; transition: all 0.3s;
+}
+.dot-btn:hover { background: rgba(255,255,255,0.5); }
+
+/* Upload Another 提示 */
+.upload-hint {
+  font-size: 11px; letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.3);
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; transition: color 0.3s;
+  text-transform: uppercase;
+}
+.upload-hint:hover { color: rgba(255,255,255,0.6); }
+.upload-hint svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+/* 文字输入行（隐藏，点击小点展开） */
+.text-input-row {
+  display: none;
+  width: 100%; max-width: 400px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 30px; padding: 10px 20px;
+  align-items: center; gap: 10px;
+  backdrop-filter: blur(10px);
+}
+.text-input-row.open { display: flex; }
+.text-input-row input {
+  flex: 1; background: none; border: none; outline: none;
+  color: rgba(255,255,255,0.9); font-size: 13px;
+  font-family: inherit;
+}
+.text-input-row input::placeholder { color: rgba(255,255,255,0.2); }
+.text-send-btn {
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.4); font-size: 16px;
+  transition: color 0.2s; padding: 0 4px;
+}
+.text-send-btn:hover { color: rgba(255,255,255,0.8); }
+
+/* ===== MEMORY 页面 ===== */
+#page-memory {
+  padding: 80px 48px 32px;
+  overflow-y: auto; flex-direction: column; gap: 24px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;
+  background: rgba(0,0,0,0.7);
+}
+.memory-header { flex-shrink: 0; margin-bottom: 8px; }
+.memory-header h2 {
+  font-size: 10px; letter-spacing: 4px;
+  color: rgba(255,255,255,0.3); text-transform: uppercase; font-weight: normal;
+}
+.memory-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; padding-bottom: 20px;
+}
+.memory-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; overflow: hidden; cursor: pointer;
+  transition: all 0.3s;
+}
+.memory-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+.memory-card-cover { width: 100%; height: 140px; background: #050505; position: relative; overflow: hidden; }
+.memory-card-cover canvas { width: 100%; height: 100%; display: block; }
+.memory-card-body { padding: 14px 16px; }
+.memory-card-date { font-size: 9px; letter-spacing: 2px; color: rgba(255,255,255,0.2); text-transform: uppercase; margin-bottom: 8px; }
+.memory-card-title { font-size: 13px; color: rgba(255,255,255,0.85); margin-bottom: 6px; line-height: 1.5; }
+.memory-card-preview { font-size: 12px; color: rgba(255,255,255,0.3); line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.memory-empty { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.2); font-size: 13px; letter-spacing: 1px; }
+
+/* ===== 日记弹窗 ===== */
+.diary-modal {
+  display: none; position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.88); backdrop-filter: blur(16px);
+  align-items: center; justify-content: center; padding: 40px;
+}
+.diary-modal.open { display: flex; }
+.diary-content {
+  background: rgba(10,10,10,0.95);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px; padding: 36px 40px; max-width: 560px; width: 100%;
+  max-height: 80vh; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.diary-date { font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,0.2); text-transform: uppercase; margin-bottom: 20px; }
+.diary-title { font-size: 18px; color: rgba(255,255,255,0.9); margin-bottom: 16px; line-height: 1.5; font-weight: normal; }
+.diary-body { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 2; white-space: pre-wrap; }
+.diary-close {
+  position: absolute; top: 20px; right: 20px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5); font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.diary-close:hover { background: rgba(255,255,255,0.12); }
+
+/* ===== 保存动画 ===== */
+.saving-overlay {
+  display: none; position: fixed; inset: 0; z-index: 90;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+  align-items: center; justify-content: center; flex-direction: column; gap: 20px;
+}
+.saving-overlay.open { display: flex; }
+.saving-text {
+  font-size: 11px; letter-spacing: 4px;
+  color: rgba(255,255,255,0.4); text-transform: uppercase;
+  animation: pulse-fast 1.5s ease-in-out infinite;
+}
+
+/* ===== API 设置弹窗 ===== */
+.api-modal {
+  display: none; position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.88); backdrop-filter: blur(16px);
+  align-items: center; justify-content: center; padding: 40px;
+}
+.api-modal.open { display: flex; }
+.api-box {
+  background: rgba(8,8,8,0.98);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 32px; max-width: 440px; width: 100%;
+}
+.api-box h3 { font-size: 11px; letter-spacing: 3px; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 20px; font-weight: normal; }
+.api-box input {
+  width: 100%; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 12px 14px; color: rgba(255,255,255,0.9);
+  font-size: 13px; font-family: monospace; outline: none; margin-bottom: 12px;
+  transition: border-color 0.3s;
+}
+.api-box input:focus { border-color: rgba(255,255,255,0.25); }
+.api-box .btn-row { display: flex; gap: 10px; justify-content: flex-end; }
+.api-box button {
+  padding: 8px 20px; border-radius: 8px; font-size: 11px; cursor: pointer;
+  letter-spacing: 1.5px; font-family: inherit; transition: all 0.2s; text-transform: uppercase;
+}
+.btn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); }
+.btn-save-key { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); }
+.btn-save-key:hover { background: rgba(255,255,255,0.14); }
+
+/* ===== 图片上传隐藏 input ===== */
+#imgFileInput { display: none; }
+
+/* ===== 开启礼物页面 ===== */
+#page-gift {
+  position: relative;
+  height: 100vh;
+  align-items: stretch;
+  justify-content: stretch;
+  overflow: hidden;
+}
+#gift-scene {
+  position: relative;
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+#gift-three {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
+#giftVideo {
+  position: absolute;
+  bottom: 24px; right: 24px;
+  width: 160px; height: 120px;
+  border-radius: 10px;
+  object-fit: cover;
+  opacity: 0.55;
+  transform: scaleX(-1);
+  z-index: 5;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+#giftOverlay {
+  position: absolute;
+  bottom: 24px; right: 24px;
+  width: 160px; height: 120px;
+  border-radius: 10px;
+  z-index: 6;
+  pointer-events: none;
+  transform: scaleX(-1);
+}
+#giftCamDot {
+  position: absolute;
+  bottom: 30px; right: 30px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 6px #4ade80;
+  z-index: 7;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+#giftGuide {
+  position: absolute;
+  bottom: 160px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px; letter-spacing: 2px;
+  color: rgba(255,255,255,0.3);
+  z-index: 8;
+  text-align: center;
+  transition: opacity 0.6s;
+  white-space: nowrap;
+}
+#giftFistRing {
+  position: absolute;
+  bottom: 16px; right: 16px;
+  width: 60px; height: 60px;
+  z-index: 8;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+</style>
+</head>
+<body>
+
+<!-- 猫爪光标：黑色圆形背景 + 白色爪印 SVG -->
+<div id="pawCursor" class="open">
+  <svg viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+    <!-- 黑色圆形背景 -->
+    <circle cx="23" cy="23" r="22" fill="rgba(0,0,0,0.82)" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/>
+    <!-- 大掌垫（下方中央，椭圆） -->
+    <ellipse cx="23" cy="30" rx="7" ry="5.5" fill="white" opacity="0.95"/>
+    <!-- 四个小趾垫，带独立 transform 用于张开/收拢 -->
+    <!-- 左上趾 -->
+    <g class="claw claw-tl" style="transform-origin:13px 20px">
+      <ellipse cx="13" cy="20" rx="4" ry="3.2" fill="white" opacity="0.92"/>
+    </g>
+    <!-- 右上趾 -->
+    <g class="claw claw-tr" style="transform-origin:33px 20px">
+      <ellipse cx="33" cy="20" rx="4" ry="3.2" fill="white" opacity="0.92"/>
+    </g>
+    <!-- 左下趾 -->
+    <g class="claw claw-bl" style="transform-origin:17px 25px">
+      <ellipse cx="17" cy="25" rx="3.8" ry="3" fill="white" opacity="0.92"/>
+    </g>
+    <!-- 右下趾 -->
+    <g class="claw claw-br" style="transform-origin:29px 25px">
+      <ellipse cx="29" cy="25" rx="3.8" ry="3" fill="white" opacity="0.92"/>
+    </g>
+  </svg>
+</div>
+
+<!-- 全屏粒子 Three.js 3D -->
+<div id="threeContainer"></div>
+<!-- 上传图片展示 -->
+<img id="photoDisplay" alt="" />
+<!-- 保留旧canvas供图片采样用（隐藏） -->
+<canvas id="particleCanvas" style="display:none"></canvas>
+
+<div class="app">
+
+  <!-- 顶部导航 -->
+  <nav>
+    <div class="nav-brand"></div>
+    <div class="nav-center">
+      <a class="active" onclick="switchPage('tonight', this)">THE GARDEN</a>
+      <a onclick="switchPage('memory', this)">MEMORY</a>
+      <a onclick="alert('Music coming soon')">MUSIC</a>
+      <a onclick="openApiModal()">INFO</a>
+      <a onclick="switchPage('gift', this)">GIFT</a>
+    </div>
+    <div class="nav-right">
+      <div class="nav-icon" onclick="toggleMute()" id="muteBtn" title="静音">
+        <svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" stroke-linecap="round"/></svg>
+      </div>
+      <div class="nav-icon" onclick="openApiModal()" title="设置">
+        <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 今晚页面 -->
+  <div id="page-tonight" class="page active">
+
+    <!-- AI 状态 -->
+    <div class="ai-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span class="ai-name" id="statusText">Gemini</span>
+    </div>
+
+    <!-- 设置按钮 -->
+    <div class="settings-btn" onclick="openApiModal()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </div>
+
+    <!-- 对话气泡（浮在粒子上） -->
+    <div class="chat-overlay">
+      <div class="chat-bubble" id="chatBubble">
+        <span class="msg-ai" id="welcomeMsg">今天发生了什么？就像跟朋友聊天一样，随便说……</span>
+      </div>
+    </div>
+
+    <!-- 底部控制区 -->
+    <div class="bottom-controls">
+
+      <!-- 文字输入（点击小点展开） -->
+      <div class="text-input-row" id="textInputRow">
+        <input type="text" id="userInput" placeholder="说说今天……" />
+        <button class="text-send-btn" onclick="sendMessage()">↑</button>
+      </div>
+
+      <!-- 时间 + Save Memory + X -->
+      <div class="control-row">
+        <div class="timer-badge" id="timerDisplay">01:00</div>
+        <button class="save-btn" onclick="saveMemory()">
+          Save Memory <span class="arrow">›</span>
+        </button>
+        <button class="clear-btn" onclick="clearChat()" title="清除对话">×</button>
+      </div>
+
+      <!-- 麦克风 + 小点 -->
+      <div class="mic-row">
+        <div class="mic-btn" id="micBtn" onclick="toggleVoice()">
+          <svg viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1 17.93V21h-2v2h6v-2h-2v-2.07A8 8 0 0 0 20 11h-2a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.93z"/></svg>
+        </div>
+        <div class="dot-btn" id="dotBtn" onclick="toggleTextInput()" title="文字输入"></div>
+      </div>
+
+      <!-- Upload Another -->
+      <label class="upload-hint" for="imgFileInput">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload Another
+      </label>
+      <input type="file" id="imgFileInput" accept="image/*" onchange="handleImageUpload(event)">
+
+    </div>
+  </div>
+
+  <!-- MEMORY 页面 -->
+  <div id="page-memory" class="page">
+    <div class="memory-header">
+      <h2>Memory Archive</h2>
+    </div>
+    <div class="memory-grid" id="memoryGrid"></div>
+  </div>
+
+  <!-- GIFT 页面 -->
+  <div id="page-gift" class="page">
+    <div id="gift-scene">
+      <!-- Three.js 渲染器挂载点 -->
+      <div id="gift-three"></div>
+      <!-- 摄像头预览 -->
+      <video id="giftVideo" autoplay playsinline muted></video>
+      <canvas id="giftOverlay"></canvas>
+      <!-- 状态指示点 -->
+      <div id="giftCamDot"></div>
+      <!-- 提示文字 -->
+      <div id="giftGuide">&#x5F00;&#x542F;&#x6444;&#x50CF;&#x5934;&#xFF0C;&#x7528;&#x624B;&#x52BF;&#x53EC;&#x5524;&#x795E;&#x79D8;&#x793C;&#x7269;</div>
+      <!-- 握拳进度环 -->
+      <svg id="giftFistRing" viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+        <circle id="giftFistArc" cx="30" cy="30" r="26" fill="none" stroke="#a78bfa" stroke-width="3"
+          stroke-dasharray="163.4" stroke-dashoffset="163.4" stroke-linecap="round"
+          transform="rotate(-90 30 30)"/>
+      </svg>
+    </div>
+  </div>
+
+</div>
+
+<!-- 日记弹窗 -->
+<div class="diary-modal" id="diaryModal">
+  <div class="diary-content" style="position:relative">
+    <button class="diary-close" onclick="closeDiary()">×</button>
+    <div class="diary-date" id="diaryDate"></div>
+    <div class="diary-title" id="diaryTitle"></div>
+    <div class="diary-body" id="diaryBody"></div>
+  </div>
+</div>
+
+<!-- 保存动画 -->
+<div class="saving-overlay" id="savingOverlay">
+  <canvas id="savingParticle" width="200" height="200" style="border-radius:50%"></canvas>
+  <div class="saving-text">Saving Memory...</div>
+</div>
+
+<!-- API 设置弹窗 -->
+<div class="api-modal" id="apiModal">
+  <div class="api-box">
+    <h3>Gemini API Key</h3>
+    <input type="password" id="apiKeyInput" placeholder="AIza..." />
+    <p style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:16px;line-height:1.7;letter-spacing:0.3px">
+      前往 aistudio.google.com 免费申请 Key<br>填入后将使用真实 Gemini AI 对话
+    </p>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="closeApiModal()">取消</button>
+      <button class="btn-save-key" onclick="saveApiKey()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 配置
+// ============================================================
+let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
+
+const AI_PERSONA = `你是一个温柔的睡前陪伴AI，名字叫"晚安"。
+你的风格：温柔、有共情力、不说教、像一个懂你的老朋友。
+你的任务：倾听用户今天发生的事，给予温暖的回应，帮助用户放松心情准备入睡。
+回复要简短（2-4句话），不要给建议，只是陪伴和理解。
+用中文回复。`;
+
+const MOCK_REPLIES = [
+  "听起来今天挺累的，能说出来就好了……你已经很努力了。",
+  "嗯，我在听。这种感觉很正常，不用太苛责自己。",
+  "今天能走到这里，就已经很好了。慢慢来。",
+  "听你说这些，我能感受到你的疲惫。今晚好好休息吧。",
+  "有些事情不是一天能解决的，先放下，睡一觉再说。",
+  "你说的这些，我都记住了。今晚不用想太多，交给明天的自己。",
+  "嗯……听起来今天有点复杂。不管怎样，你还是撑过来了。",
+  "谢谢你愿意跟我说这些。今晚就先到这里，好好睡。"
+];
+
+// ============================================================
+// 状态
+// ============================================================
+let messages = [];
+let isRecording = false;
+let recognition = null;
+let timerInterval = null;
+let timerSeconds = 60;
+let memories = JSON.parse(localStorage.getItem('ai_diary_memories') || '[]');
+let isMuted = false;
+let textInputOpen = false;
+
+// 粒子系统（Three.js 3D）
+let pAnimId = null;
+
+// ============================================================
+// 初始化
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  startTimer();
+  initParticles();
+
+  document.getElementById('userInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+});
+
+// ============================================================
+// 计时器（倒计时风格，从 01:00 开始往上计）
+// ============================================================
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+    const s = String(timerSeconds % 60).padStart(2, '0');
+    document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+// ============================================================
+// 页面切换
+// ============================================================
+function switchPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-center a').forEach(a => a.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  el.classList.add('active');
+  if (name === 'gift') initGiftPage();
+  if (name === 'memory') renderMemories();
+}
+
+// ============================================================
+// 文字输入切换
+// ============================================================
+function toggleTextInput() {
+  textInputOpen = !textInputOpen;
+  const row = document.getElementById('textInputRow');
+  row.classList.toggle('open', textInputOpen);
+  if (textInputOpen) document.getElementById('userInput').focus();
+}
+
+// ============================================================
+// 静音切换（占位）
+// ============================================================
+function toggleMute() {
+  isMuted = !isMuted;
+  const btn = document.getElementById('muteBtn');
+  btn.style.opacity = isMuted ? '0.3' : '1';
+}
+
+// ============================================================
+// 清除对话
+// ============================================================
+function clearChat() {
+  if (messages.length === 0) return;
+  if (!confirm('清除当前对话？')) return;
+  messages = [];
+  timerSeconds = 60;
+  const bubble = document.getElementById('chatBubble');
+  bubble.innerHTML = '<span class="msg-ai" id="welcomeMsg">今天发生了什么？就像跟朋友聊天一样，随便说……</span>';
+}
+
+// ============================================================
+// 语音识别
+// ============================================================
+function toggleVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('你的浏览器不支持语音识别，请使用 Chrome 或 Edge');
+    return;
+  }
+  if (isRecording) { stopVoice(); return; }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'zh-CN';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    document.getElementById('micBtn').classList.add('recording');
+    document.getElementById('statusDot').className = 'status-dot recording';
+    setStatus('recording', '正在听…');
+  };
+  recognition.onresult = e => {
+    const text = e.results[0][0].transcript;
+    document.getElementById('userInput').value = text;
+    stopVoice();
+    sendMessage();
+  };
+  recognition.onerror = () => stopVoice();
+  recognition.onend = () => { if (isRecording) stopVoice(); };
+  recognition.start();
+}
+
+function stopVoice() {
+  isRecording = false;
+  document.getElementById('micBtn').classList.remove('recording');
+  document.getElementById('statusDot').className = 'status-dot';
+  setStatus('listening', 'Gemini');
+  if (recognition) { recognition.stop(); recognition = null; }
+}
+
+// ============================================================
+// 发送消息
+// ============================================================
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  // 关闭文字输入框
+  textInputOpen = false;
+  document.getElementById('textInputRow').classList.remove('open');
+
+  appendBubble('user', text);
+  messages.push({ role: 'user', text });
+
+  setStatus('thinking', '思考中…');
+  document.getElementById('statusDot').className = 'status-dot thinking';
+  appendTyping();
+
+  let reply;
+  if (GEMINI_API_KEY) {
+    reply = await callGemini(text);
+  } else {
+    await sleep(1200 + Math.random() * 800);
+    reply = MOCK_REPLIES[Math.floor(Math.random() * MOCK_REPLIES.length)];
+  }
+
+  removeTyping();
+  appendBubble('ai', reply);
+  messages.push({ role: 'ai', text: reply });
+  document.getElementById('statusDot').className = 'status-dot';
+  setStatus('listening', 'Gemini');
+}
+
+// ============================================================
+// Gemini API
+// ============================================================
+async function callGemini(userText) {
+  try {
+    const history = messages.slice(-8).map(m => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.text }]
+    }));
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: AI_PERSONA }] },
+          contents: [...history, { role: 'user', parts: [{ text: userText }] }],
+          generationConfig: { temperature: 0.85, maxOutputTokens: 200 }
+        })
+      }
+    );
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '……（AI 暂时没有回应）';
+  } catch (e) {
+    return '网络好像有点问题，但我还在这里陪着你。';
+  }
+}
+
+// ============================================================
+// 生成日记
+// ============================================================
+async function generateDiary() {
+  const conversation = messages.map(m => `${m.role === 'user' ? '我' : 'AI'}：${m.text}`).join('\n');
+  if (GEMINI_API_KEY) {
+    try {
+      const prompt = `以下是用户今天睡前的倾诉对话：\n\n${conversation}\n\n请根据这段对话，以第一人称为用户写一篇今天的日记。要求：\n1. 语气温柔、真实，像用户自己写的\n2. 提炼出今天最核心的情绪和事件\n3. 结尾用一句有力量的话收尾\n4. 200字左右\n5. 先给出一个日记标题（一行），再写正文`;
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.9, maxOutputTokens: 400 }
+          })
+        }
+      );
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const lines = text.trim().split('\n').filter(l => l.trim());
+      return { title: lines[0] || '今天', body: lines.slice(1).join('\n') };
+    } catch (e) { return mockDiary(); }
+  } else {
+    await sleep(1500);
+    return mockDiary();
+  }
+}
+
+function mockDiary() {
+  const userTexts = messages.filter(m => m.role === 'user').map(m => m.text);
+  const preview = userTexts[0] || '今天的一些事';
+  return {
+    title: `关于今天——${preview.slice(0, 12)}${preview.length > 12 ? '…' : ''}`,
+    body: `今天说了很多，也听到了很多。\n\n${userTexts.join('。\n\n')}\n\n不管今天发生了什么，能把它说出来，就已经是一种释放了。\n\n明天又是新的一天。`
+  };
+}
+
+// ============================================================
+// Save Memory
+// ============================================================
+async function saveMemory() {
+  if (messages.length === 0) {
+    alert('先跟 AI 说说今天发生的事吧～');
+    return;
+  }
+  document.getElementById('savingOverlay').classList.add('open');
+  animateSavingParticle();
+
+  const diary = await generateDiary();
+  const now = new Date();
+  const memory = {
+    id: Date.now(),
+    date: now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }),
+    dateShort: `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`,
+    title: diary.title,
+    body: diary.body,
+    preview: diary.body.slice(0, 60),
+    hue: Math.floor(Math.random() * 60) + 190
+  };
+
+  memories.unshift(memory);
+  localStorage.setItem('ai_diary_memories', JSON.stringify(memories));
+
+  await sleep(2000);
+  document.getElementById('savingOverlay').classList.remove('open');
+
+  messages = [];
+  timerSeconds = 60;
+  const bubble = document.getElementById('chatBubble');
+  bubble.innerHTML = '<span class="msg-ai">今天的记忆已经保存好了。明天见，好好睡～</span>';
+
+  setTimeout(() => {
+    switchPage('memory', document.querySelectorAll('.nav-center a')[1]);
+  }, 800);
+}
+
+// ============================================================
+// 记忆相册
+// ============================================================
+function renderMemories() {
+  const grid = document.getElementById('memoryGrid');
+  if (memories.length === 0) {
+    grid.innerHTML = '<div class="memory-empty">还没有记忆<br><br>今晚说说今天发生的事，保存你的第一篇日记</div>';
+    return;
+  }
+  grid.innerHTML = memories.map(m => `
+    <div class="memory-card" onclick="openDiary(${m.id})">
+      <div class="memory-card-cover">
+        <canvas class="mini-particle" data-hue="${m.hue}" width="280" height="140"></canvas>
+      </div>
+      <div class="memory-card-body">
+        <div class="memory-card-date">${m.dateShort}</div>
+        <div class="memory-card-title">${m.title}</div>
+        <div class="memory-card-preview">${m.preview}…</div>
+      </div>
+    </div>
+  `).join('');
+  document.querySelectorAll('.mini-particle').forEach(c => {
+    drawMiniParticle(c, parseInt(c.dataset.hue));
+  });
+}
+
+function drawMiniParticle(canvas, hue) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, W, H);
+  const pts = Array.from({ length: 400 }, () => {
+    const a = Math.random() * Math.PI * 2;
+    const r = Math.random() < 0.5 ? 35 + Math.random() * 20 : Math.random() * 32;
+    return { x: W / 2 + Math.cos(a) * r, y: H / 2 + Math.sin(a) * r, size: Math.random() * 1.4 + 0.3, alpha: Math.random() * 0.6 + 0.3 };
+  });
+  pts.forEach(p => {
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${hue},70%,70%,${p.alpha})`; ctx.fill();
+  });
+}
+
+function openDiary(id) {
+  const m = memories.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('diaryDate').textContent = m.date;
+  document.getElementById('diaryTitle').textContent = m.title;
+  document.getElementById('diaryBody').textContent = m.body;
+  document.getElementById('diaryModal').classList.add('open');
+}
+function closeDiary() { document.getElementById('diaryModal').classList.remove('open'); }
+
+// ============================================================
+// 保存动画粒子
+// ============================================================
+function animateSavingParticle() {
+  const c = document.getElementById('savingParticle');
+  const ctx = c.getContext('2d');
+  const W = 200, H = 200, cx = W / 2, cy = H / 2;
+  const pts = Array.from({ length: 800 }, () => {
+    const a = Math.random() * Math.PI * 2;
+    const r = Math.random() < 0.55 ? 60 + (Math.random() - .5) * 28 : Math.random() * 55;
+    return { ox: cx + Math.cos(a) * r, oy: cy + Math.sin(a) * r, x: cx + (Math.random() - .5) * W, y: cy + (Math.random() - .5) * H, size: Math.random() * 1.5 + 0.3, hue: 200 + Math.random() * 40, alpha: Math.random() * 0.6 + 0.3, phase: Math.random() * Math.PI * 2, speed: Math.random() * 0.008 + 0.003 };
+  });
+  let running = true;
+  document.getElementById('savingOverlay').addEventListener('transitionend', () => { running = false; }, { once: true });
+  function draw(ts) {
+    if (!running) return;
+    const t = ts / 1000;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, W, H);
+    pts.forEach(p => {
+      p.x += (p.ox - p.x) * 0.016; p.y += (p.oy - p.y) * 0.016;
+      const j = Math.sin(t * p.speed * 1000 + p.phase) * 1.2;
+      const a = p.alpha * (0.65 + 0.35 * Math.sin(t * p.speed * 800 + p.phase));
+      ctx.beginPath(); ctx.arc(p.x + j, p.y + j, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${p.hue},75%,72%,${a})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+// ============================================================
+// API 设置
+// ============================================================
+function openApiModal() {
+  document.getElementById('apiKeyInput').value = GEMINI_API_KEY;
+  document.getElementById('apiModal').classList.add('open');
+}
+function closeApiModal() { document.getElementById('apiModal').classList.remove('open'); }
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  GEMINI_API_KEY = key;
+  localStorage.setItem('gemini_api_key', key);
+  closeApiModal();
+}
+
+// ============================================================
+// 工具函数
+// ============================================================
+function setStatus(type, text) {
+  document.getElementById('statusText').textContent = text;
+}
+
+function appendBubble(role, text) {
+  const bubble = document.getElementById('chatBubble');
+  // 只保留最新 2 条消息（1 user + 1 ai）
+  const items = bubble.querySelectorAll('.msg-user, .msg-ai');
+  if (items.length >= 3) items[0].remove();
+
+  const el = document.createElement('div');
+  el.className = role === 'user' ? 'msg-user' : 'msg-ai';
+  el.textContent = text;
+  bubble.appendChild(el);
+}
+
+function appendTyping() {
+  const bubble = document.getElementById('chatBubble');
+  const el = document.createElement('span');
+  el.className = 'typing'; el.id = 'typingIndicator'; el.textContent = '……';
+  bubble.appendChild(el);
+}
+function removeTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ============================================================
+// 全屏粒子系统 — Three.js WebGL 3D 版
+// ============================================================
+
+const PARTICLE_COUNT = 80000;
+let imageStartTime = 0;
+let particleMode = 'idle';
+
+// Three.js 全局对象
+let threeScene, threeCamera, threeRenderer;
+let threeGeo, threeMat, threeMesh;
+// 粒子数据数组（Float32Array，直接写入 BufferGeometry）
+let posArr, colArr, sizeArr;
+// 每粒子元数据（目标位置、颜色等）
+let ptData = [];
+let pTime = 0;
+
+function initParticles() {
+  const W = window.innerWidth, H = window.innerHeight;
+
+  // ── Three.js 场景 ──
+  threeScene = new THREE.Scene();
+
+  // 正交相机：标准 Three.js 坐标系
+  // 视锥：left=-W/2, right=W/2, top=H/2, bottom=-H/2（Y轴上正下负，原点在屏幕中心）
+  threeCamera = new THREE.OrthographicCamera(-W/2, W/2, H/2, -H/2, -2000, 2000);
+  threeCamera.position.set(0, 0, 1000);
+
+  threeRenderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+  threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  threeRenderer.setSize(W, H);
+  threeRenderer.setClearColor(0x000000, 0);
+  threeRenderer.domElement.style.position = 'fixed';
+  threeRenderer.domElement.style.top = '0';
+  threeRenderer.domElement.style.left = '0';
+  threeRenderer.domElement.style.pointerEvents = 'none';
+  document.getElementById('threeContainer').appendChild(threeRenderer.domElement);
+
+  // ── BufferGeometry（image 模式用）──
+  threeGeo = new THREE.BufferGeometry();
+  posArr  = new Float32Array(PARTICLE_COUNT * 3);
+  colArr  = new Float32Array(PARTICLE_COUNT * 3);
+  sizeArr = new Float32Array(PARTICLE_COUNT);
+
+  // ── 初始化 ptData（image 模式粒子，初始散布在屏幕上）──
+  ptData = [];
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const x = (Math.random() - 0.5) * W;
+    const y = (Math.random() - 0.5) * H;
+    const z = (Math.random() - 0.5) * 200;
+    const rv = 0.3 + Math.random() * 0.4;
+    const gv = 0.4 + Math.random() * 0.4;
+    const bv = 0.7 + Math.random() * 0.3;
+    const sz = 1.5 + Math.random() * 2.0;
+    posArr[i*3]   = x; posArr[i*3+1] = y; posArr[i*3+2] = z;
+    colArr[i*3]   = rv; colArr[i*3+1] = gv; colArr[i*3+2] = bv;
+    sizeArr[i] = sz;
+    ptData.push({
+      x, y, z,
+      vx: 0, vy: 0, vz: 0,
+      tx: x, ty: y, tz: z,
+      r: rv, g: gv, b: bv,
+      wr: rv, wg: gv, wb: bv,
+      br: rv, bg: gv, bb: bv,
+      size: sz,
+      a: 0.6 + Math.random() * 0.4,
+      isBg: false,
+      dx: Math.random() * 100,
+      dy: Math.random() * 100,
+      sPhi: Math.acos(2 * Math.random() - 1),
+      sTheta: Math.random() * Math.PI * 2,
+      sR: 0.8 + Math.random() * 0.2,
+      sSpeed: (Math.random() - 0.5) * 0.05,
+      sPhiSpd: (Math.random() - 0.5) * 0.010,
+      sType: 2,
+      sPhase: Math.random() * Math.PI * 2,
+    });
+  }
+
+  threeGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+  threeGeo.setAttribute('color',    new THREE.BufferAttribute(colArr, 3));
+  threeGeo.setAttribute('size',     new THREE.BufferAttribute(sizeArr, 1));
+
+  // ── ShaderMaterial（image 模式用）──
+  threeMat = new THREE.ShaderMaterial({
+    uniforms: { time: { value: 0 } },
+    vertexShader: `
+      attribute float size;
+      attribute vec3 color;
+      varying vec3 vColor;
+      varying float vAlpha;
+      void main() {
+        vColor = color;
+        vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+        float depthScale = 1.0 + position.z * 0.002;
+        gl_PointSize = size * max(0.4, depthScale);
+        gl_Position = projectionMatrix * mvPos;
+        vAlpha = clamp(0.4 + 0.6 * depthScale, 0.0, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying float vAlpha;
+      varying vec3 vColor;
+      void main() {
+        vec2 uv = gl_PointCoord - 0.5;
+        float d = length(uv);
+        if (d > 0.5) discard;
+        float core  = 1.0 - smoothstep(0.0, 0.18, d);
+        float mid   = 1.0 - smoothstep(0.0, 0.35, d);
+        float outer = 1.0 - smoothstep(0.0, 0.50, d);
+        float glow  = core * 1.0 + mid * 0.5 + outer * 0.2;
+        glow = pow(glow, 1.1);
+        vec3 col = mix(vColor, vec3(1.0), core * 0.6);
+        gl_FragColor = vec4(col * glow, vAlpha * glow);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+
+  threeMesh = new THREE.Points(threeGeo, threeMat);
+  threeMesh.visible = false; // idle 时隐藏，image 时显示
+  threeScene.add(threeMesh);
+
+  // ══════════════════════════════════════════════════════════
+  // ── IDLE 模式：webgl_custom_attributes_points3 效果 ──
+  // 随机散点云（hollow cube）+ 盒子框架线条
+  // ball 贴图 alphatest，雾效，内层 sin 波动
+  // ══════════════════════════════════════════════════════════
+
+  // ── 透视相机（idle 专用）──
+  const idleCamera = new THREE.PerspectiveCamera(40, W / H, 1, 2000);
+  idleCamera.position.set(0, 0, 750);
+  idleCamera.lookAt(0, 0, 0);
+  window._idleCamera = idleCamera;
+
+  // ── ball 贴图（canvas 生成，硬边圆形，模拟 ball.png）──
+  const ballCanvas = document.createElement('canvas');
+  ballCanvas.width = ballCanvas.height = 64;
+  const ballCtx = ballCanvas.getContext('2d');
+  const ballGrad = ballCtx.createRadialGradient(32, 32, 0, 32, 32, 30);
+  ballGrad.addColorStop(0,    'rgba(255,255,255,1)');
+  ballGrad.addColorStop(0.45, 'rgba(255,255,255,0.95)');
+  ballGrad.addColorStop(0.75, 'rgba(200,220,255,0.6)');
+  ballGrad.addColorStop(1,    'rgba(0,0,0,0)');
+  ballCtx.fillStyle = ballGrad;
+  ballCtx.fillRect(0, 0, 64, 64);
+  const ballTexture = new THREE.CanvasTexture(ballCanvas);
+  ballTexture.wrapS = THREE.RepeatWrapping;
+  ballTexture.wrapT = THREE.RepeatWrapping;
+
+  // ── 构建 points3 几何：随机散点云 + 盒子框架 ──
+  function buildPoints3Geometry() {
+    let radius = 70;
+    const inner = 0.82 * radius;
+    const vertex = new THREE.Vector3();
+    const vertices = [];
+
+    // 随机散点云（hollow cube 边缘薄层）
+    for (let i = 0; i < 20000; i++) {
+      vertex.x = Math.random() * 2 - 1;
+      vertex.y = Math.random() * 2 - 1;
+      vertex.z = Math.random() * 2 - 1;
+      vertex.multiplyScalar(radius);
+      if ((vertex.x > inner || vertex.x < -inner) ||
+          (vertex.y > inner || vertex.y < -inner) ||
+          (vertex.z > inner || vertex.z < -inner)) {
+        vertices.push(vertex.x, vertex.y, vertex.z);
+      }
+    }
+    const vertices1 = vertices.length / 3;
+
+    radius = 140;
+
+    // 手动 mergeVertices（去重）
+    function mergeVerts(geo) {
+      const src = geo.getAttribute('position').array;
+      const map = new Map();
+      const newPos = [];
+      for (let i = 0; i < src.length; i += 3) {
+        const key = src[i].toFixed(3)+','+src[i+1].toFixed(3)+','+src[i+2].toFixed(3);
+        if (!map.has(key)) { map.set(key, true); newPos.push(src[i], src[i+1], src[i+2]); }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(newPos, 3));
+      return g;
+    }
+
+    // 盒子框架辅助函数
+    const matrix = new THREE.Matrix4();
+    const position = new THREE.Vector3();
+    const rotation = new THREE.Euler();
+    const quaternion = new THREE.Quaternion();
+    const scale = new THREE.Vector3(1, 1, 1);
+
+    function addGeo(geo, x, y, z, ry) {
+      position.set(x, y, z);
+      rotation.set(0, ry, 0);
+      matrix.compose(position, quaternion.setFromEuler(rotation), scale);
+      const posAttr = geo.getAttribute('position');
+      for (let i = 0, l = posAttr.count; i < l; i++) {
+        vertex.fromBufferAttribute(posAttr, i);
+        vertex.applyMatrix4(matrix);
+        vertices.push(vertex.x, vertex.y, vertex.z);
+      }
+    }
+
+    // 横向边（side 1）
+    let boxGeo1 = new THREE.BoxGeometry(radius, 0.1*radius, 0.1*radius, 50, 5, 5);
+    boxGeo1.deleteAttribute('normal');
+    boxGeo1.deleteAttribute('uv');
+    boxGeo1 = mergeVerts(boxGeo1);
+
+    addGeo(boxGeo1,  0,  77,  77, 0);
+    addGeo(boxGeo1,  0,  77, -77, 0);
+    addGeo(boxGeo1,  0, -77,  77, 0);
+    addGeo(boxGeo1,  0, -77, -77, 0);
+
+    // 横向边（side 2）
+    addGeo(boxGeo1,  77,  77, 0, Math.PI/2);
+    addGeo(boxGeo1,  77, -77, 0, Math.PI/2);
+    addGeo(boxGeo1, -77,  77, 0, Math.PI/2);
+    addGeo(boxGeo1, -77, -77, 0, Math.PI/2);
+
+    // 竖向角边
+    let boxGeo2 = new THREE.BoxGeometry(0.1*radius, radius*1.2, 0.1*radius, 5, 60, 5);
+    boxGeo2.deleteAttribute('normal');
+    boxGeo2.deleteAttribute('uv');
+    boxGeo2 = mergeVerts(boxGeo2);
+
+    addGeo(boxGeo2,  77, 0,  77, 0);
+    addGeo(boxGeo2,  77, 0, -77, 0);
+    addGeo(boxGeo2, -77, 0,  77, 0);
+    addGeo(boxGeo2, -77, 0, -77, 0);
+
+    const positionAttribute = new THREE.Float32BufferAttribute(vertices, 3);
+    const colors = [];
+    const sizes  = [];
+    const color  = new THREE.Color();
+
+    for (let i = 0; i < positionAttribute.count; i++) {
+      if (i < vertices1) {
+        // 散点云：蓝紫色调，极暗
+        color.setHSL(0.55 + 0.15 * (i / vertices1), 0.6, 0.12);
+      } else {
+        // 框架：极暗琥珀
+        color.setHSL(0.08, 0.8, 0.18);
+      }
+      color.toArray(colors, i * 3);
+      sizes[i] = i < vertices1 ? 10 : 40;
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', positionAttribute);
+    geo.setAttribute('ca',   new THREE.Float32BufferAttribute(colors, 3));
+    geo.setAttribute('size', new THREE.Float32BufferAttribute(sizes,  1));
+
+    return { geo, vertices1 };
+  }
+
+  const { geo: idleGeo, vertices1: idleVertices1 } = buildPoints3Geometry();
+  const idleLength1 = idleVertices1;
+
+  // ── ShaderMaterial（points3 原版 shader，含雾效 + alphatest）──
+  const idleMat = new THREE.ShaderMaterial({
+    uniforms: {
+      color:        { value: new THREE.Color(0xffffff) },
+      pointTexture: { value: ballTexture },
+    },
+    vertexShader: `
+      attribute float size;
+      attribute vec4  ca;
+      varying   vec4  vColor;
+      void main() {
+        vColor = ca;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size * (150.0 / -mvPosition.z);
+        gl_Position  = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3      color;
+      uniform sampler2D pointTexture;
+      varying vec4      vColor;
+      void main() {
+        vec4 outColor = texture2D(pointTexture, gl_PointCoord);
+        if (outColor.a < 0.5) discard;
+        gl_FragColor = outColor * vec4(color * vColor.xyz, 1.0);
+      }
+    `,
+    transparent: true,
+  });
+
+  // ca attribute 需要 vec4，重新设置（复用 colors 数组，补 alpha=1）
+  const caArr = idleGeo.getAttribute('ca').array;
+  const ca4 = new Float32Array(caArr.length / 3 * 4);
+  for (let i = 0, j = 0; i < caArr.length; i += 3, j += 4) {
+    ca4[j] = caArr[i]; ca4[j+1] = caArr[i+1]; ca4[j+2] = caArr[i+2]; ca4[j+3] = 1.0;
+  }
+  idleGeo.setAttribute('ca', new THREE.Float32BufferAttribute(ca4, 4));
+
+  const idleSphere = new THREE.Points(idleGeo, idleMat);
+  idleSphere.visible = true;
+  idleSphere.position.set(0, 30, 0);
+
+  // idle 用独立 scene，避免与正交相机的像素坐标系冲突
+  const idleScene = new THREE.Scene();
+  idleScene.add(idleSphere);
+  window._idleScene = idleScene;
+
+  // 把 idle 相关对象挂到 window 供 animate 访问
+  window._idleSphere  = idleSphere;
+  window._idleMat     = idleMat;
+  window._idleLength1 = idleLength1;
+  window._sortIdlePts = function() {}; // points3 不需要深度排序（alphatest 代替）
+
+  // ── 球心发光核心（2D canvas 纹理 sprite）──
+  const glowCanvas = document.createElement('canvas');
+  glowCanvas.width = glowCanvas.height = 256;
+  const glowCtx = glowCanvas.getContext('2d');
+  const glowGrad = glowCtx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  glowGrad.addColorStop(0.0,  'rgba(160,210,255,0.55)');
+  glowGrad.addColorStop(0.18, 'rgba(100,160,255,0.30)');
+  glowGrad.addColorStop(0.45, 'rgba(60,100,220,0.12)');
+  glowGrad.addColorStop(1.0,  'rgba(0,0,0,0)');
+  glowCtx.fillStyle = glowGrad;
+  glowCtx.fillRect(0, 0, 256, 256);
+  const glowTex = new THREE.CanvasTexture(glowCanvas);
+  const glowMat = new THREE.SpriteMaterial({
+    map: glowTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const glowSprite = new THREE.Sprite(glowMat);
+const SPHERE_R_SPRITE = Math.min(W, H) * 0.26;
+glowSprite.scale.set(SPHERE_R_SPRITE * 2.6, SPHERE_R_SPRITE * 3.5, 1); // 蛋形光晕，Y 轴拉伸
+  glowSprite.position.set(0, 0, -10);
+  threeScene.add(glowSprite);
+
+  // ── 猫爪光标 ──
+  const pawEl = document.getElementById('pawCursor');
+  let pawMoveTimer = null;
+  // 初始隐藏（鼠标还没进入页面时不显示）
+  pawEl.style.opacity = '0';
+
+  window.addEventListener('mousemove', e => {
+    // 跟随鼠标
+    pawEl.style.left = e.clientX + 'px';
+    pawEl.style.top  = e.clientY + 'px';
+    pawEl.style.opacity = '1';
+
+    // 移动时：收拢爪子，停止呼吸动画
+    pawEl.classList.remove('open');
+
+    // 停止移动 600ms 后：张开爪子 + 呼吸动画
+    clearTimeout(pawMoveTimer);
+    pawMoveTimer = setTimeout(() => {
+      pawEl.classList.add('open');
+    }, 600);
+  });
+
+  // 鼠标离开窗口时隐藏
+  document.addEventListener('mouseleave', () => { pawEl.style.opacity = '0'; });
+  document.addEventListener('mouseenter', () => { pawEl.style.opacity = '1'; });
+
+  // ── 鼠标视差 ──
+  let mouseNX = 0, mouseNY = 0;
+  window.addEventListener('mousemove', e => {
+    mouseNX = (e.clientX / window.innerWidth  - 0.5) * 2;
+    mouseNY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  // ── 拖尾残影：在 WebGL canvas 上叠加半透明黑色覆盖层 ──
+  // 通过在 renderer 上层放一个 2D canvas 实现残影
+  const trailCanvas = document.createElement('canvas');
+  trailCanvas.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:1;';
+  trailCanvas.width  = W;
+  trailCanvas.height = H;
+  document.getElementById('threeContainer').appendChild(trailCanvas);
+  const trailCtx = trailCanvas.getContext('2d');
+
+  // ── 动画循环 ──
+  let lastTs = 0;
+  function animate(ts) {
+    const t  = ts * 0.001;
+    const dt = Math.min(t - lastTs, 0.05);
+    lastTs = t;
+    pTime  = t;
+
+    const W = window.innerWidth, H = window.innerHeight;
+    const elapsed = (particleMode === 'image') ? t - imageStartTime : 0;
+
+    const posArr  = threeGeo.attributes.position.array;
+    const colArr  = threeGeo.attributes.color.array;
+    const sizeArr = threeGeo.attributes.size.array;
+
+    if (particleMode === 'idle') {
+      // ── IDLE：points3 随机散点云 + 盒子框架旋转 ──
+      if (window._idleSphere) {
+        window._idleSphere.visible = true;
+        const time = Date.now() * 0.01;
+        window._idleSphere.rotation.y = 0.02 * time;
+        window._idleSphere.rotation.z = 0.02 * time;
+
+        // 内层散点 size 随 sin 波动
+        const sizeAttr = idleGeo.attributes.size;
+        for (let i = 0; i < window._idleLength1; i++) {
+          sizeAttr.array[i] = Math.max(0, 26 + 32 * Math.sin(0.1 * i + 0.6 * time));
+        }
+        sizeAttr.needsUpdate = true;
+
+        // ── 亮度呼吸：在极暗(0.12/0.18) 和稍亮(0.25/0.35) 之间缓慢循环 ──
+        // 周期约 8 秒，sin 值 -1~1 映射到 0~1
+        const breathe = (Math.sin(time * 0.08) + 1) * 0.5; // 0~1，慢速
+        const dotL   = 0.12 + breathe * 0.13;  // 0.12 ~ 0.25
+        const frameL = 0.18 + breathe * 0.17;  // 0.18 ~ 0.35
+
+        const caAttr = idleGeo.attributes.ca;
+        const ca = caAttr.array;
+        const total = caAttr.count;
+        const len1  = window._idleLength1;
+        const _c = new THREE.Color();
+        for (let i = 0; i < total; i++) {
+          if (i < len1) {
+            _c.setHSL(0.55 + 0.15 * (i / len1), 0.6, dotL);
+          } else {
+            _c.setHSL(0.08, 0.8, frameL);
+          }
+          ca[i*4]   = _c.r;
+          ca[i*4+1] = _c.g;
+          ca[i*4+2] = _c.b;
+          // ca[i*4+3] alpha 保持 1
+        }
+        caAttr.needsUpdate = true;
+      }
+      threeMesh.visible = false;
+      glowSprite.material.opacity = Math.max(0, glowSprite.material.opacity - 0.02);
+      if (glowSprite.material.opacity <= 0) glowSprite.visible = false;
+
+    } else {
+      // ── IMAGE：图片粒子模式 ──
+      if (window._cubePoints) window._cubePoints.visible = false;
+      threeMesh.visible = true;
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const p  = ptData[i];
+        const i3 = i * 3;
+        const FLY_DUR = 2.5;
+
+        if (p.isBg) {
+          p.x += (p.tx + Math.sin(t * 0.3 + p.dx) * 1.2 - p.x) * 0.03;
+          p.y += (p.ty + Math.cos(t * 0.25 + p.dy) * 0.8 - p.y) * 0.03;
+          p.z += (p.tz - p.z) * 0.03;
+        } else {
+          const flyP = Math.max(0, Math.min(1, (elapsed - p.delay * FLY_DUR * 0.4) / (FLY_DUR * 0.7)));
+          const eased = 1 - Math.pow(1 - flyP, 3);
+
+          if (eased < 0.995) {
+            p.x = p.startX + (p.tx - p.startX) * eased;
+            p.y = p.startY + (p.ty - p.startY) * eased;
+            p.z = p.startZ + (p.tz - p.startZ) * eased;
+          } else {
+            const fAmp = p.isEdge ? 2.8 : 0.8;
+            const fSpd = p.isEdge ? 0.6 : 0.3;
+            p.x = p.tx + Math.sin(t * fSpd       + p.dx) * fAmp;
+            p.y = p.ty + Math.cos(t * fSpd * 0.7 + p.dy) * fAmp * 0.6;
+            p.z = p.tz + Math.sin(t * 0.25        + p.dx * 0.5) * (p.isEdge ? 12 : 5);
+          }
+
+          if (p.isEdge) {
+            const shimmer = 0.88 + Math.sin(t * 1.8 + p.dx * 0.3) * 0.12;
+            p.r = p.wr * shimmer;
+            p.g = p.wg * shimmer;
+            p.b = p.wb * shimmer;
+          }
+        }
+
+        posArr[i3]   = p.x;
+        posArr[i3+1] = p.y;
+        posArr[i3+2] = p.z;
+        colArr[i3]   = p.r;
+        colArr[i3+1] = p.g;
+        colArr[i3+2] = p.b;
+        const depthFactor = 1.0 + p.z * 0.003;
+        sizeArr[i] = p.size * Math.max(0.3, depthFactor);
+      }
+
+      threeGeo.attributes.position.needsUpdate = true;
+      threeGeo.attributes.color.needsUpdate    = true;
+      threeGeo.attributes.size.needsUpdate     = true;
+
+      // 辉光淡出（image 模式不显示）
+      glowSprite.material.opacity = Math.max(0, glowSprite.material.opacity - 0.02);
+      if (glowSprite.material.opacity <= 0) glowSprite.visible = false;
+    }
+
+    // trail canvas 保持清空
+    trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+
+    // idle 用独立 scene + 透视相机；image 用 threeScene + 正交相机
+    if (particleMode === 'idle' && window._idleScene && window._idleCamera) {
+      threeRenderer.render(window._idleScene, window._idleCamera);
+    } else {
+      // 正交相机跟随鼠标（image 模式）
+      threeCamera.position.x += (mouseNX * 14 - threeCamera.position.x) * 0.025;
+      threeCamera.position.y += (mouseNY * 10 - threeCamera.position.y) * 0.025;
+      threeRenderer.render(threeScene, threeCamera);
+    }
+    pAnimId = requestAnimationFrame(animate);
+  }
+  animate(0);
+}
+
+// ============================================================
+// 图片粒子化 — Three.js 3D 版
+// ============================================================
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => applyImageParticles(img);
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+// ── 图片碎玻璃粒子效果 ──
+// 图片中央清晰，边缘像素爆炸式碎裂成粒子云向外扩散（参考图效果）
+function applyImageParticles(img) {
+  const W = window.innerWidth, H = window.innerHeight;
+
+  // 1. 直接显示图片，无任何 mask（边缘碎裂由粒子层表现）
+  const photoEl = document.getElementById('photoDisplay');
+  photoEl.src = img.src;
+  photoEl.style.webkitMaskImage = 'none';
+  photoEl.style.maskImage = 'none';
+  photoEl.style.display = 'block';
+  setTimeout(() => { photoEl.style.opacity = '1'; }, 200);
+
+  // 2. 计算图片实际显示尺寸（与 CSS max 52vw/58vh 一致）
+  const maxW = W * 0.52, maxH = H * 0.58;
+  const imgRatio = img.width / img.height;
+  let dispW, dispH;
+  if (img.width / maxW > img.height / maxH) {
+    dispW = maxW; dispH = maxW / imgRatio;
+  } else {
+    dispH = maxH; dispW = maxH * imgRatio;
+  }
+
+  // 3. 采样图片（最大 320px，保持宽高比）
+  const SAMPLE_MAX = 320;
+  const sScale = Math.min(SAMPLE_MAX / img.width, SAMPLE_MAX / img.height, 1);
+  const cw = Math.round(img.width  * sScale);
+  const ch = Math.round(img.height * sScale);
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width = cw; offCanvas.height = ch;
+  const offCtx = offCanvas.getContext('2d');
+  offCtx.drawImage(img, 0, 0, cw, ch);
+  const pixels = offCtx.getImageData(0, 0, cw, ch).data;
+
+  // 4. 采集粒子源点
+  //    只取极窄边缘带（图片短边 8% 宽度），形成贴边碎裂效果
+  //    depth = 到边缘的归一化距离（0=最外缘，1=边缘带内侧）
+  const srcPts = []; // [normX, normY, r, g, b, depth]
+  const EDGE_BAND = Math.round(Math.min(cw, ch) * 0.08); // 只取 8% 极窄边缘
+
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      const distEdge = Math.min(x, y, cw - 1 - x, ch - 1 - y);
+      if (distEdge >= EDGE_BAND) continue;
+      const idx = (y * cw + x) * 4;
+      if (pixels[idx + 3] < 10) continue;
+      const depth = distEdge / EDGE_BAND; // 0=最外，1=内侧边界
+      srcPts.push([
+        x / cw, y / ch,
+        pixels[idx]   / 255,
+        pixels[idx+1] / 255,
+        pixels[idx+2] / 255,
+        depth
+      ]);
+    }
+  }
+
+  // 5. Three.js 坐标转换（图片中心 = 屏幕中心 = 0,0）
+  function toThree(nx, ny) {
+    return [(nx - 0.5) * dispW, (0.5 - ny) * dispH];
+  }
+
+  // 6. 分配粒子
+  //    每个粒子从边缘像素原位出发，向外「爆炸」扩散
+  //    depth 越小（越靠外）→ 扩散越远、越稀疏
+  //    depth 越大（越靠内）→ 基本停在原位，形成密集内层
+  const BG_COUNT = Math.floor(PARTICLE_COUNT * 0.06);
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const p = ptData[i];
+
+    if (i < BG_COUNT) {
+      // 极少量背景暗星
+      p.isBg = true;
+      p.tx = (Math.random() - 0.5) * W * 1.6;
+      p.ty = (Math.random() - 0.5) * H * 1.6;
+      p.tz = -100 + Math.random() * 180;
+      const bv = 0.04 + Math.random() * 0.07;
+      p.wr = bv * 0.3; p.wg = bv * 0.5; p.wb = bv;
+      p.r = p.wr; p.g = p.wg; p.b = p.wb;
+      p.size = 0.3 + Math.random() * 0.5;
+      p.isEdge = false;
+    } else {
+      p.isBg = false;
+      const src = srcPts[Math.floor(Math.random() * srcPts.length)];
+      const [bx, by] = toThree(src[0], src[1]);
+      const depth = src[5]; // 0=最外，1=内侧
+
+      // ── 爆炸扩散逻辑 ──
+      // 方向：从图片中心指向该像素（径向向外）
+      const dirX = bx, dirY = by;
+      const dirLen = Math.sqrt(dirX * dirX + dirY * dirY) || 1;
+      const dnx = dirX / dirLen, dny = dirY / dirLen;
+
+      // 扩散距离：极窄碎裂，粒子就贴着边缘，最远只飞 ~35px
+      // 大量粒子停在原位附近，少量飞稍远，形成碎玻璃锯齿感
+      const outerFactor = 1 - depth; // 0=内侧，1=最外
+      const baseDist = outerFactor * outerFactor * 35; // 最远 35px
+      const randDist = Math.pow(Math.random(), 0.45) * baseDist;
+      // 横向扰动也很小，保持贴边感
+      const perpX = -dny, perpY = dnx;
+      const perpJitter = (Math.random() - 0.5) * outerFactor * 18;
+
+      p.tx = bx + dnx * randDist + perpX * perpJitter;
+      p.ty = by + dny * randDist + perpY * perpJitter;
+      p.tz = (Math.random() - 0.5) * outerFactor * 20;
+
+      // ── 颜色 ──
+      // 取图片原色；外层粒子亮度随机波动更大（碎玻璃反光感）
+      const bright = 0.85 + Math.random() * (0.15 + outerFactor * 0.5);
+      // 越外越淡，最外层接近透明
+      const alpha = depth * 0.6 + 0.4; // 内侧 1.0，最外 0.4
+      p.wr = Math.min(1, src[2] * bright * alpha);
+      p.wg = Math.min(1, src[3] * bright * alpha);
+      p.wb = Math.min(1, src[4] * bright * alpha + outerFactor * 0.06);
+      p.r = p.wr; p.g = p.wg; p.b = p.wb;
+      p.br = p.r; p.bg = p.g; p.bb = p.b;
+
+      // ── 粒子大小 ──
+      // 内层密集细小，外层稀疏但偶有较大碎片（碎玻璃感）
+      const baseSize = 0.5 + depth * 1.2;
+      const glassChance = Math.random();
+      p.size = glassChance > 0.92
+        ? baseSize + outerFactor * 3.0 + Math.random() * 2.0  // 偶发大碎片
+        : baseSize + Math.random() * 0.8;
+      p.isEdge = true;
+    }
+
+    p.startX = p.x; p.startY = p.y; p.startZ = p.z;
+    p.delay  = Math.random() * 0.35;
+    p.dx = Math.random() * 100;
+    p.dy = Math.random() * 100;
+    p.vx = 0; p.vy = 0; p.vz = 0;
+  }
+
+  imageStartTime = pTime;
+  particleMode = 'image';
+}
+
+// 人形散开，回到蛋形粒子流状态
+function resetToIdleParticles() {
+  if (particleMode === 'idle') return;
+  // 隐藏图片显示层
+  const photoEl = document.getElementById('photoDisplay');
+  if (photoEl) { photoEl.style.opacity = '0'; setTimeout(() => { photoEl.style.display = 'none'; photoEl.src = ''; }, 600); }
+  // cubePoints 的显示由 animate 函数根据 particleMode 控制
+  particleMode = 'idle';
+}
+
+// [buildHumanParticles 已删除，图片效果由 applyImageParticles 直接处理]
+if (false) { function buildHumanParticles() {
+  const W = window.innerWidth, H = window.innerHeight;
+
+  // ── ZONE：跪坐人形，宽扁比例，占屏幕中央 ──
+  // 跪坐姿势宽≈高*1.4，所以ZONE要宽
+  const ZONE_TOP_SCR    = H * 0.12;
+  const ZONE_BOTTOM_SCR = H * 0.88;
+  const ZONE_LEFT_SCR   = W * 0.08;
+  const ZONE_RIGHT_SCR  = W * 0.92;
+
+  // Three.js 坐标
+  const ZONE_TOP_3D    =  H/2 - ZONE_TOP_SCR;    // 正值（上方）
+  const ZONE_BOTTOM_3D =  H/2 - ZONE_BOTTOM_SCR; // 负值（下方）
+  const ZONE_LEFT_3D   =  ZONE_LEFT_SCR  - W/2;  // 负值（左）
+  const ZONE_RIGHT_3D  =  ZONE_RIGHT_SCR - W/2;  // 正值（右）
+  const ZW = ZONE_RIGHT_3D - ZONE_LEFT_3D;
+  const ZH = ZONE_TOP_3D   - ZONE_BOTTOM_3D; // 正值
+
+  // ── 程序化人形骨架：用贝塞尔曲线段定义身体各部位 ──
+  // 坐标系：(0,0)=人形中心底部，x:-0.5~0.5，y:0~1（归一化）
+  // 最终映射到 Three.js ZONE 坐标
+
+  // 辅助：在线段上均匀采样点
+  function sampleLine(x0, y0, x1, y1, n) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const t = n === 1 ? 0.5 : i / (n - 1);
+      pts.push([x0 + (x1-x0)*t, y0 + (y1-y0)*t]);
+    }
+    return pts;
+  }
+  // 辅助：在椭圆上采样点（填充）
+  function sampleEllipse(cx, cy, rx, ry, n) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()); // 均匀填充
+      pts.push([cx + Math.cos(a)*rx*r, cy + Math.sin(a)*ry*r]);
+    }
+    return pts;
+  }
+  // 辅助：在线段周围加噪声采样（模拟线条粒子）
+  function sampleStroke(x0, y0, x1, y1, n, width) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const t = Math.random();
+      const nx = -(y1-y0), ny = (x1-x0);
+      const len = Math.sqrt(nx*nx+ny*ny) || 1;
+      const off = (Math.random()-0.5) * width;
+      pts.push([
+        x0+(x1-x0)*t + nx/len*off,
+        y0+(y1-y0)*t + ny/len*off
+      ]);
+    }
+    return pts;
+  }
+
+  // ══════════════════════════════════════════════════════
+  // 跪坐动漫女性骨架 —— 完全按真实比例重建
+  //
+  // ZONE宽(ZW) >> ZONE高(ZH)，比例约 1.7:1
+  // 所以骨架坐标必须考虑实际像素比：
+  //   屏幕像素X = ZW * x_norm
+  //   屏幕像素Y = ZH * y_norm
+  // 为让人形不变形，x坐标范围要比y小得多
+  //
+  // 设计原则：
+  //   人形总高 ≈ ZH * 0.85（y: 0.075 ~ 0.925）
+  //   人形总宽 ≈ ZH * 0.85（因为ZW≈1.7*ZH，所以x范围≈0.85/1.7≈0.50）
+  //   即x用[-0.25, 0.25]，y用[0.075, 0.925]，人形近似正方形
+  // ══════════════════════════════════════════════════════
+  const bodyParts = [];
+
+  // 辅助：贝塞尔曲线采样
+  function sampleBezier(x0,y0, cx,cy, x1,y1, n, w) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const t = Math.random(), mt = 1-t;
+      const bx = mt*mt*x0 + 2*mt*t*cx + t*t*x1;
+      const by = mt*mt*y0 + 2*mt*t*cy + t*t*y1;
+      const off = (Math.random()-0.5)*w;
+      const dx = 2*(1-t)*(cx-x0)+2*t*(x1-cx);
+      const dy = 2*(1-t)*(cy-y0)+2*t*(y1-cy);
+      const len = Math.sqrt(dx*dx+dy*dy)||1;
+      pts.push([bx - dy/len*off, by + dx/len*off]);
+    }
+    return pts;
+  }
+
+  // ── 坐标说明 ──
+  // x: [-0.5, 0.5] 对应ZONE宽度
+  // y: [0, 1]      对应ZONE高度
+  // ZONE宽高比≈1.7，所以x=0.1对应的像素宽 = y=0.17对应的像素高
+  // 人形设计在 x[-0.25,0.25], y[0.08,0.95] 内，近似正方形区域
+
+  // ════════════════════════════════
+  // 1. 头部（圆，居中，y=0.82~0.95）
+  // ════════════════════════════════
+  // 头半径：x方向0.055，y方向0.055*1.7=0.093 → 用rx=0.055, ry=0.065
+  bodyParts.push(...sampleEllipse(0.00, 0.875, 0.052, 0.062, 700));
+  for (let a = 0; a < Math.PI*2; a += 0.035) {
+    bodyParts.push([Math.cos(a)*0.052, 0.875 + Math.sin(a)*0.062]);
+  }
+
+  // 白色发箍（头顶弧线）
+  bodyParts.push(...sampleBezier(-0.042, 0.930, 0.00, 0.948, 0.042, 0.930, 180, 0.008));
+
+  // 黑色长发（左右垂落，蓬松）
+  for (let k = 0; k < 900; k++) {
+    const t = Math.random();
+    // 左侧发丝
+    bodyParts.push([-0.015 - Math.random()*0.055 - t*0.025,
+                     0.935 - t*0.200 + (Math.random()-0.5)*0.012]);
+  }
+  for (let k = 0; k < 700; k++) {
+    const t = Math.random();
+    // 右侧发丝
+    bodyParts.push([ 0.015 + Math.random()*0.045 + t*0.018,
+                     0.935 - t*0.180 + (Math.random()-0.5)*0.012]);
+  }
+  // 左侧长发垂到肩
+  for (let k = 0; k < 350; k++) {
+    const t = Math.random();
+    bodyParts.push([-0.055 - t*0.030 + (Math.random()-0.5)*0.015,
+                     0.790 - t*0.060 + (Math.random()-0.5)*0.015]);
+  }
+
+  // ════════════════════════════════
+  // 2. 颈部（短，y=0.810~0.755）
+  // ════════════════════════════════
+  bodyParts.push(...sampleStroke(0.00, 0.810, 0.00, 0.758, 180, 0.014));
+
+  // ════════════════════════════════
+  // 3. 肩膀（露肩宽领，x±0.115）
+  // ════════════════════════════════
+  bodyParts.push(...sampleEllipse(-0.115, 0.755, 0.028, 0.022, 200));
+  bodyParts.push(...sampleEllipse( 0.115, 0.755, 0.028, 0.022, 200));
+  bodyParts.push(...sampleBezier(-0.115, 0.755, 0.00, 0.742, 0.115, 0.755, 280, 0.010));
+
+  // ════════════════════════════════
+  // 4. 躯干（露肩毛衣，丰满胸部，收腰）
+  //    胸宽x±0.130，腰x±0.085，臀x±0.105
+  //    y: 肩0.755 → 腰0.640 → 裙顶0.580
+  // ════════════════════════════════
+  // 左侧轮廓（胸→腰→臀）
+  bodyParts.push(...sampleBezier(-0.115, 0.755, -0.135, 0.710, -0.085, 0.640, 320, 0.014));
+  bodyParts.push(...sampleBezier(-0.085, 0.640, -0.080, 0.610, -0.100, 0.580, 200, 0.012));
+  // 右侧轮廓
+  bodyParts.push(...sampleBezier( 0.115, 0.755,  0.135, 0.710,  0.085, 0.640, 320, 0.014));
+  bodyParts.push(...sampleBezier( 0.085, 0.640,  0.080, 0.610,  0.100, 0.580, 200, 0.012));
+
+  // 胸部填充（丰满，两个椭圆）
+  bodyParts.push(...sampleEllipse(-0.062, 0.710, 0.058, 0.042, 550));
+  bodyParts.push(...sampleEllipse( 0.062, 0.710, 0.058, 0.042, 550));
+  // V领
+  bodyParts.push(...sampleStroke(-0.030, 0.748, 0.00, 0.710, 130, 0.008));
+  bodyParts.push(...sampleStroke( 0.030, 0.748, 0.00, 0.710, 130, 0.008));
+
+  // 躯干填充
+  for (let y = 0.585; y < 0.755; y += 0.018) {
+    const t = (y-0.585)/(0.755-0.585);
+    const hw = t < 0.35 ? 0.085 + t*0.14 : 0.085 + (1-t)*0.14;
+    bodyParts.push(...sampleStroke(-hw, y, hw, y, 16, 0.005));
+  }
+
+  // 毛衣下摆
+  bodyParts.push(...sampleBezier(-0.100, 0.580, 0.00, 0.568, 0.100, 0.580, 220, 0.010));
+
+  // ════════════════════════════════
+  // 5. 手臂（双臂向前下方伸出捧盒子）
+  //    上臂从肩(±0.115, 0.755)向外下伸
+  //    前臂向内收到手(±0.110, 0.615)
+  // ════════════════════════════════
+  // 左上臂
+  bodyParts.push(...sampleBezier(-0.115, 0.755, -0.155, 0.700, -0.150, 0.660, 280, 0.018));
+  // 左前臂
+  bodyParts.push(...sampleBezier(-0.150, 0.660, -0.148, 0.635, -0.110, 0.615, 250, 0.016));
+  bodyParts.push(...sampleEllipse(-0.105, 0.608, 0.024, 0.018, 130));
+
+  // 右上臂
+  bodyParts.push(...sampleBezier( 0.115, 0.755,  0.155, 0.700,  0.150, 0.660, 280, 0.018));
+  // 右前臂
+  bodyParts.push(...sampleBezier( 0.150, 0.660,  0.148, 0.635,  0.110, 0.615, 250, 0.016));
+  bodyParts.push(...sampleEllipse( 0.105, 0.608, 0.024, 0.018, 130));
+
+  // ════════════════════════════════
+  // 6. 巧克力盒（双手捧，居中）
+  //    盒子在 x[-0.095,0.095], y[0.590,0.625]
+  // ════════════════════════════════
+  const bx0=-0.095, bx1=0.095, by0=0.590, by1=0.625;
+  bodyParts.push(...sampleStroke(bx0, by0, bx1, by0, 200, 0.006));
+  bodyParts.push(...sampleStroke(bx0, by1, bx1, by1, 200, 0.006));
+  bodyParts.push(...sampleStroke(bx0, by0, bx0, by1, 100, 0.006));
+  bodyParts.push(...sampleStroke(bx1, by0, bx1, by1, 100, 0.006));
+  // 格子
+  for (let gx = bx0+0.030; gx < bx1; gx += 0.032) {
+    bodyParts.push(...sampleStroke(gx, by0+0.003, gx, by1-0.003, 25, 0.003));
+  }
+  bodyParts.push(...sampleStroke(bx0+0.003, (by0+by1)/2, bx1-0.003, (by0+by1)/2, 50, 0.003));
+  bodyParts.push(...sampleEllipse(0.00, (by0+by1)/2, 0.088, 0.016, 250));
+
+  // ════════════════════════════════
+  // 7. 裙子（跪坐，裙摆向两侧大幅展开）
+  //    裙顶 y=0.575，裙摆两侧到 x=±0.230, y=0.460
+  //    裙摆底边 y=0.445（宽弧形）
+  // ════════════════════════════════
+  // 左裙摆（从腰部大幅向左展开）
+  bodyParts.push(...sampleBezier(-0.095, 0.575, -0.210, 0.540, -0.235, 0.460, 420, 0.022));
+  // 右裙摆
+  bodyParts.push(...sampleBezier( 0.095, 0.575,  0.210, 0.540,  0.235, 0.460, 420, 0.022));
+  // 裙摆底边（宽弧）
+  bodyParts.push(...sampleBezier(-0.235, 0.460,  0.000, 0.440,  0.235, 0.460, 380, 0.016));
+  // 裙子填充
+  for (let y = 0.445; y < 0.575; y += 0.016) {
+    const f = (0.575-y)/(0.575-0.445);
+    const hw = 0.090 + f * 0.140;
+    bodyParts.push(...sampleStroke(-hw, y, hw, y, 24, 0.008));
+  }
+
+  // ════════════════════════════════
+  // 8. 腿部 —— 跪坐正确姿势
+  //
+  // 跪坐从正面看：
+  //   大腿：几乎水平，从臀部(x=±0.10, y=0.46)向外伸到膝盖(x=±0.30, y=0.42)
+  //   小腿：从膝盖向下+略向内折叠，到脚踝(x=±0.22, y=0.18)
+  //   脚：贴地，脚背向后，脚尖朝外(x=±0.18, y=0.10)
+  //
+  // 关键：大腿几乎水平（y变化小），小腿向下折（y变化大，x向内收）
+  // ════════════════════════════════
+
+  // ── 左腿 ──
+  // 左大腿（从裙摆左侧几乎水平向左伸出）
+  bodyParts.push(...sampleBezier(-0.100, 0.455, -0.210, 0.445, -0.305, 0.420, 450, 0.032));
+  // 左膝盖
+  bodyParts.push(...sampleEllipse(-0.305, 0.420, 0.036, 0.036, 220));
+  // 左小腿（从膝盖向下折叠，x向内收回）
+  bodyParts.push(...sampleBezier(-0.305, 0.420, -0.295, 0.320, -0.255, 0.220, 400, 0.028));
+  // 左脚踝
+  bodyParts.push(...sampleBezier(-0.255, 0.220, -0.240, 0.160, -0.215, 0.115, 250, 0.022));
+  // 左脚（贴地，向后伸）
+  bodyParts.push(...sampleBezier(-0.215, 0.115, -0.200, 0.085, -0.175, 0.075, 180, 0.018));
+  bodyParts.push(...sampleEllipse(-0.170, 0.068, 0.048, 0.024, 150));
+
+  // ── 右腿 ──
+  // 右大腿
+  bodyParts.push(...sampleBezier( 0.100, 0.455,  0.210, 0.445,  0.305, 0.420, 450, 0.032));
+  // 右膝盖
+  bodyParts.push(...sampleEllipse( 0.305, 0.420, 0.036, 0.036, 220));
+  // 右小腿
+  bodyParts.push(...sampleBezier( 0.305, 0.420,  0.295, 0.320,  0.255, 0.220, 400, 0.028));
+  // 右脚踝
+  bodyParts.push(...sampleBezier( 0.255, 0.220,  0.240, 0.160,  0.215, 0.115, 250, 0.022));
+  // 右脚
+  bodyParts.push(...sampleBezier( 0.215, 0.115,  0.200, 0.085,  0.175, 0.075, 180, 0.018));
+  bodyParts.push(...sampleEllipse( 0.170, 0.068, 0.048, 0.024, 150));
+
+  // 大腿内侧填充（让腿看起来有体积）
+  for (let k = 0; k < 300; k++) {
+    const t = Math.random();
+    const lx = -0.100 + (-0.305+0.100)*t;
+    const ly = 0.455 + (0.420-0.455)*t;
+    bodyParts.push([lx + (Math.random()-0.5)*0.025, ly + (Math.random()-0.5)*0.015]);
+    bodyParts.push([-lx + (Math.random()-0.5)*0.025, ly + (Math.random()-0.5)*0.015]);
+  }
+
+  // ════════════════════════════════
+  // 9. 爱心装饰
+  // ════════════════════════════════
+  function sampleHeart(cx, cy, size, n) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const t = Math.random() * Math.PI * 2;
+      const hx = size * 16 * Math.pow(Math.sin(t), 3) / 16;
+      const hy = size * (13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t)) / 16;
+      pts.push([cx + hx*0.013, cy + hy*0.013]);
+    }
+    return pts;
+  }
+  bodyParts.push(...sampleHeart(-0.32, 0.88, 0.8, 90));
+  bodyParts.push(...sampleHeart(-0.26, 0.76, 0.5, 55));
+  bodyParts.push(...sampleHeart( 0.32, 0.90, 0.9, 95));
+  bodyParts.push(...sampleHeart( 0.36, 0.78, 0.6, 65));
+  bodyParts.push(...sampleHeart( 0.24, 0.70, 0.4, 45));
+
+  // ════════════════════════════════
+  // 10. 飘散光丝
+  // ════════════════════════════════
+  const baseLen = bodyParts.length;
+  for (let k = 0; k < 6000; k++) {
+    const src = bodyParts[Math.floor(Math.random() * baseLen)];
+    const dist = 0.006 + Math.random() * 0.040;
+    const ang2 = Math.random() * Math.PI * 2;
+    bodyParts.push([src[0] + Math.cos(ang2)*dist, src[1] + Math.sin(ang2)*dist]);
+  }
+
+  const candidates = bodyParts;
+
+  // ── 分配粒子 ──
+  const BG_COUNT = Math.floor(PARTICLE_COUNT * 0.06);
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const p = ptData[i];
+
+    if (i < BG_COUNT) {
+      // 背景星点
+      p.tx = ZONE_LEFT_3D - ZW*0.4 + Math.random()*ZW*1.8;
+      p.ty = ZONE_BOTTOM_3D - ZH*0.2 + Math.random()*ZH*1.4;
+      p.tz = -200 + Math.random()*350;
+      p.x = p.tx; p.y = p.ty; p.z = p.tz;
+      p.isBg = true;
+      const bv = (30 + Math.random()*50)/255;
+      p.r = bv*0.2; p.wr=p.r;
+      p.g = bv*0.4; p.wg=p.g;
+      p.b = bv;     p.wb=p.b;
+      p.br=p.r; p.bg=p.g; p.bb=p.b;
+      p.size = 0.6 + Math.random()*1.0;
+      p.dx = Math.random()*100; p.dy = Math.random()*100;
+      continue;
+    }
+
+    // 人形主体：从 candidates 随机取一个归一化坐标
+    p.isBg = false;
+    const c = candidates[Math.floor(Math.random() * candidates.length)];
+    const nx = c[0], ny = c[1]; // x:-0.5~0.5, y:0~1
+
+    // 映射到 Three.js 坐标
+    const bx3 = (ZONE_LEFT_3D + ZONE_RIGHT_3D) / 2 + nx * ZW * 0.92;
+    const by3 = ZONE_BOTTOM_3D + ny * ZH;
+
+    // Z 深度：给粒子一个初始角度，分布在圆柱面上（用于旋转）
+    // 旋转半径 = nx * ZW * 0.46（人形宽度的一半）
+    const rotRadius = nx * ZW * 0.46;
+    const initAngle = (Math.random()-0.5) * 0.3; // 初始轻微Z偏移
+    const zDepth = rotRadius * Math.sin(initAngle) + (Math.random()-0.5)*20;
+    const xOff   = rotRadius * Math.cos(initAngle);
+
+    // 轻微散布
+    const scatter = Math.random() < 0.04 ? 4+Math.random()*8 : Math.random()*2;
+    const ang = Math.random() * Math.PI * 2;
+    // 目标位置（旋转基准）
+    const cx3 = (ZONE_LEFT_3D + ZONE_RIGHT_3D) / 2; // 人形中心X
+    p.tx = cx3 + xOff + Math.cos(ang)*scatter;
+    p.ty = by3 + Math.sin(ang)*scatter * 0.5;
+    p.tz = zDepth;
+
+    // 旋转用：存原始半径和Y（旋转时重新计算X/Z）
+    p.rotR  = rotRadius + Math.cos(ang)*scatter; // 旋转半径
+    p.rotCX = cx3;                               // 旋转中心X
+    p.rotY  = by3;                               // Y不变
+    p.normY = ny;                                // 归一化Y（颜色用）
+
+    // 起始位置：屏幕底部随机散布
+    p.startX = (Math.random()-0.5) * W * 0.95;
+    p.ctrlX  = bx3 + (Math.random()-0.5) * 100;
+    p.delay  = Math.random();
+    p.isEdge = Math.abs(nx) > 0.30 || ny < 0.06 || ny > 0.95;
+
+    // 颜色：初始亮白
+    const bright = 0.70 + Math.random()*0.30;
+    p.r = 245/255*bright; p.wr = p.r;
+    p.g = 250/255*bright; p.wg = p.g;
+    p.b = 255/255*bright; p.wb = p.b;
+
+    // 目标色存3组（旋转展示时循环切换）
+    // col1: 青蓝，col2: 紫粉，col3: 金白
+    const st = ny*ny*(3-2*ny);
+    const bBright = 0.80 + Math.random()*0.20;
+    // 青蓝
+    p.col1r = (10  + (160-10 )*(1-st))/255 * bBright;
+    p.col1g = (140 + (250-140)*(1-st))/255 * bBright;
+    p.col1b = 255/255 * bBright;
+    // 紫粉
+    p.col2r = (180 + (255-180)*st)/255 * bBright;
+    p.col2g = (60  + (140-60 )*st)/255 * bBright;
+    p.col2b = (220 + (255-220)*(1-st))/255 * bBright;
+    // 金白
+    p.col3r = 255/255 * bBright;
+    p.col3g = (200 + (255-200)*st)/255 * bBright;
+    p.col3b = (80  + (200-80 )*st)/255 * bBright;
+
+    // 初始目标色 = 青蓝
+    p.br = p.col1r; p.bg = p.col1g; p.bb = p.col1b;
+
+    p.zoneTop    = ZONE_TOP_3D;
+    p.zoneBottom = ZONE_BOTTOM_3D;
+    p.dx = Math.random()*100;
+    p.dy = Math.random()*100;
+
+    const sizeRnd = Math.random();
+    const edgeBonus = p.isEdge ? 0.6 : 0;
+    p.size = sizeRnd < 0.012 ? 5.5 + Math.random()*3.0
+           : sizeRnd < 0.07  ? 2.5 + Math.random()*2.0 + edgeBonus
+           :                    1.0 + Math.random()*1.6 + edgeBonus;
+  }
+
+  imageStartTime = pTime;
+  particleMode = 'image';
+}} // end if(false) — buildHumanParticles removed
+
+
+// ============================================================
+// 开启礼物页面 — 独立粒子 + 摄像头交互
+// ============================================================
+// ── GIFT 页面交互（待重做）──
+// 旧的摄像头 + MediaPipe + 粒子交互代码已清除，此处留空 stub。
+// 重做时在此处实现新的 initGiftPage 逻辑。
+
+let giftInited = false;
+
+function initGiftPage() {
+  if (giftInited) return;
+  giftInited = true;
+  // TODO: 新交互效果待实现
+}
+
+
+</script>
+</body>
+</html>
