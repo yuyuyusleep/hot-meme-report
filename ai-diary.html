@@ -3331,29 +3331,42 @@ document.getElementById('gb-file-input').addEventListener('change', function(e) 
   alert('已添加 ' + files.length + ' 张照片');
 });
 
+let gbPhotoIndex = 0;
 function gbAddPhotoMesh(img) {
   const tex = new THREE.Texture(img);
   tex.needsUpdate = true; tex.colorSpace = THREE.SRGBColorSpace;
-  let w = 4, h = 4;
-  if (img.width > img.height) h = 4*(img.height/img.width); else w = 4*(img.width/img.height);
+  let w = 8, h = 8;
+  if (img.width > img.height) h = 8*(img.height/img.width); else w = 8*(img.width/img.height);
   const mat = new THREE.MeshStandardMaterial({
     map: tex, side: THREE.DoubleSide,
-    color: new THREE.Color(0.8, 0.9, 1.0), roughness: 0.9, metalness: 0.0,
-    emissive: 0x222222, emissiveIntensity: 0.5
+    color: new THREE.Color(1.0, 1.0, 1.0), roughness: 0.4, metalness: 0.0,
+    emissive: 0x444444, emissiveIntensity: 0.8
   });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
   const frame = new THREE.Mesh(
-    new THREE.BoxGeometry(w+0.2, h+0.2, 0.1),
-    new THREE.MeshPhysicalMaterial({ color:0x00ffff, roughness:0.2, metalness:0.8, emissive:0x004455, emissiveIntensity:0.5 })
+    new THREE.BoxGeometry(w+0.4, h+0.4, 0.15),
+    new THREE.MeshPhysicalMaterial({ color:0x4ade80, roughness:0.2, metalness:0.8, emissive:0x22aa55, emissiveIntensity:0.6, transparent:true, opacity:0.9 })
   );
-  frame.position.z = -0.06; mesh.add(frame);
-  const tierIndex = Math.floor(Math.random() * CONFIG.tiers.length);
-  const tier = CONFIG.tiers[tierIndex];
-  const h_pos = Math.random() * tier.height;
-  const r = tier.radius * 1.1, theta = Math.random() * Math.PI * 2;
-  const treePos = new THREE.Vector3(r*Math.cos(theta), tier.yBottom+h_pos, r*Math.sin(theta));
-  mesh.userData = { treePos, scatterPos: randomSpherePoint(50), baseRot: new THREE.Euler(0, Math.random()*Math.PI, 0) };
+  frame.position.z = -0.08; mesh.add(frame);
+
+  // 均匀环绕蛋糕外侧放置，6张照片分两层各3张
+  const totalPhotos = 6;
+  const idx = gbPhotoIndex % totalPhotos;
+  gbPhotoIndex++;
+  const layer = idx < 3 ? 0 : 1; // 下层3张，上层3张
+  const angleIdx = idx < 3 ? idx : idx - 3;
+  const theta = (angleIdx / 3) * Math.PI * 2 + (layer * Math.PI / 3); // 上下层错开60度
+
+  const tier = CONFIG.tiers[layer];
+  const r = tier.radius + 6; // 在蛋糕外侧
+  const yPos = tier.yBottom + tier.height * 0.5; // 各层中间高度
+
+  const treePos = new THREE.Vector3(r * Math.cos(theta), yPos, r * Math.sin(theta));
+  mesh.userData = { treePos, scatterPos: randomSpherePoint(50), baseRot: new THREE.Euler(0, 0, 0) };
   mesh.position.copy(treePos);
+  // 面朝外（朝向圆心的反方向）
+  mesh.lookAt(0, yPos, 0);
+  mesh.rotateY(Math.PI); // 翻转使正面朝外
   photoMeshes.push(mesh);
   mainGroup.add(mesh);
 }
