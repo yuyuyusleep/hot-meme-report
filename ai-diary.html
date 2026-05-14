@@ -820,7 +820,7 @@ nav {
     <div id="gb-canvas-wrapper">
       <div id="gb-canvas-container"></div>
 
-      <audio id="gb-bgm" loop preload="auto"><source src="" type="audio/mp3"></audio>
+      <audio id="gb-bgm" loop preload="auto"><source src="bgm.mp3" type="audio/mp3"></audio>
 
       <div id="gb-controls" style="display:none;">
         <div class="gb-icon-btn" id="gb-music-btn" onclick="gbToggleMusic()">♫</div>
@@ -2798,6 +2798,15 @@ window.gbStartExperience = function() {
 };
 
 function gbFinishIntro() {
+  // 预加载照片到蛋糕上
+  const preloadPhotos = ['photos/photo1.jpg','photos/photo2.jpg','photos/photo3.jpg','photos/photo4.jpg','photos/photo5.jpg','photos/photo6.jpg'];
+  preloadPhotos.forEach(src => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = src;
+    img.onload = () => { gbAddPhotoMesh(img); };
+  });
+
   const dims = gbUpdateDimensions();
   const finalZ = dims.height > dims.width ? 200 : 140;
   new TWEEN.Tween(camera.position).to({x:0,y:0,z:finalZ}, 3000).easing(TWEEN.Easing.Cubic.InOut).start();
