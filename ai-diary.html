@@ -2761,6 +2761,8 @@ function gbInitThree() {
 }
 
 // ── 开始体验 ──
+let gbEarlyCameraStream = null; // 提前获取的摄像头流
+
 window.gbStartExperience = function() {
   const ss = document.getElementById('gb-start-screen');
   ss.style.opacity = 0;
@@ -2771,6 +2773,18 @@ window.gbStartExperience = function() {
     document.getElementById('gb-music-btn').style.color = '#00ff00';
     document.getElementById('gb-music-btn').style.borderColor = '#00ff00';
   }).catch(()=>{});
+
+  // 在用户点击时立即请求摄像头权限（Safari 要求用户手势触发）
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } })
+      .then(stream => { gbEarlyCameraStream = stream; console.log('摄像头权限已获取（提前）'); })
+      .catch(err => {
+        console.warn('提前获取摄像头失败，尝试无约束:', err.name);
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(stream => { gbEarlyCameraStream = stream; })
+          .catch(e2 => console.error('摄像头完全无法获取:', e2.name, e2.message));
+      });
+  }
 
   initIntroParticles();
   let count = 4;
@@ -3150,6 +3164,15 @@ function gbStartCamera() {
   if (gbDetectionFrameId) { cancelAnimationFrame(gbDetectionFrameId); gbDetectionFrameId = null; }
   if (gbGlobalVideo.srcObject) { gbGlobalVideo.srcObject.getTracks().forEach(t => t.stop()); gbGlobalVideo.srcObject = null; }
 
+  // 优先使用提前获取的摄像头流（解决 Safari 用户手势限制）
+  if (gbEarlyCameraStream) {
+    console.log('使用提前获取的摄像头流');
+    gbGlobalVideo.srcObject = gbEarlyCameraStream;
+    gbEarlyCameraStream = null; // 用完清空
+    gbGlobalVideo.play().then(() => gbPredictWebcam()).catch(e => console.error('video play failed:', e));
+    return;
+  }
+
   // 检查是否支持 mediaDevices
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     console.error('此浏览器不支持 getUserMedia，需要 HTTPS 环境');
@@ -3164,9 +3187,7 @@ function gbStartCamera() {
     })
     .catch(err => {
       console.error('Camera failed:', err.name, err.message);
-      // 如果是 NotAllowedError（用户拒绝），不重试
-      // 如果是 NotFoundError（无设备），尝试不指定 facingMode
-      if (err.name === 'NotFoundError' || err.name === 'OverconstrainedError') {
+      if (err.name === 'NotFoundError' || err.name === 'OverconstrainedError' || err.name === 'NotAllowedError') {
         navigator.mediaDevices.getUserMedia({ video: true })
           .then(stream => { gbGlobalVideo.srcObject = stream; gbGlobalVideo.play().then(() => gbPredictWebcam()); })
           .catch(e2 => console.error('Camera fallback also failed:', e2.name, e2.message));
