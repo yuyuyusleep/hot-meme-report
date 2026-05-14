@@ -3077,7 +3077,11 @@ function gbUpdatePhotos() {
     let targetPos, targetScale = 2.0;
     if (currentState === STATE.TREE) {
       targetPos = mesh.userData.treePos;
-      targetScale = 0;
+      targetScale = 1.0; // 蛋糕状态下照片正常显示环绕
+      // 让照片始终面朝外（跟随蛋糕旋转时自动面向观察者）
+      const worldPos = new THREE.Vector3();
+      mesh.getWorldPosition(worldPos);
+      mesh.lookAt(camera.position);
     } else if (currentState === STATE.SCATTER) {
       targetPos = mesh.userData.scatterPos;
       targetScale = 4.0;
@@ -3098,7 +3102,6 @@ function gbUpdatePhotos() {
         if (mesh.material.emissive) mesh.material.emissive.setHex(0x222222);
       }
     }
-    if (currentState === STATE.TREE) mesh.rotation.y += 0.01;
     mesh.position.lerp(targetPos, lerpFactor);
     mesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), lerpFactor);
   });
