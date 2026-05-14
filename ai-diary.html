@@ -3361,17 +3361,18 @@ function gbAddPhotoMesh(img) {
   tex.needsUpdate = true; tex.colorSpace = THREE.SRGBColorSpace;
   let w = 8, h = 8;
   if (img.width > img.height) h = 8*(img.height/img.width); else w = 8*(img.width/img.height);
-  const mat = new THREE.MeshStandardMaterial({
+  const mat = new THREE.MeshBasicMaterial({
     map: tex, side: THREE.DoubleSide,
-    color: new THREE.Color(1.0, 1.0, 1.0), roughness: 0.4, metalness: 0.0,
-    emissive: 0x444444, emissiveIntensity: 0.8
+    transparent: false, depthTest: true, depthWrite: true
   });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+  mesh.renderOrder = 999; // 确保照片渲染在粒子之上
   const frame = new THREE.Mesh(
-    new THREE.BoxGeometry(w+0.4, h+0.4, 0.15),
-    new THREE.MeshPhysicalMaterial({ color:0x4ade80, roughness:0.2, metalness:0.8, emissive:0x22aa55, emissiveIntensity:0.6, transparent:true, opacity:0.9 })
+    new THREE.BoxGeometry(w+0.5, h+0.5, 0.2),
+    new THREE.MeshBasicMaterial({ color:0x4ade80, transparent: false, depthTest: true, depthWrite: true })
   );
-  frame.position.z = -0.08; mesh.add(frame);
+  frame.renderOrder = 998;
+  frame.position.z = -0.12; mesh.add(frame);
 
   // 均匀环绕蛋糕外侧放置，6张照片分两层各3张
   const totalPhotos = 6;
@@ -3382,7 +3383,7 @@ function gbAddPhotoMesh(img) {
   const theta = (angleIdx / 3) * Math.PI * 2 + (layer * Math.PI / 3); // 上下层错开60度
 
   const tier = CONFIG.tiers[layer];
-  const r = tier.radius + 6; // 在蛋糕外侧
+  const r = tier.radius + 14; // 在蛋糕外侧远处，避免与粒子重叠
   const yPos = tier.yBottom + tier.height * 0.5; // 各层中间高度
 
   const treePos = new THREE.Vector3(r * Math.cos(theta), yPos, r * Math.sin(theta));
